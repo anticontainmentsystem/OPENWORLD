@@ -47,6 +47,10 @@
         
         <div class="profile-header__stats">
           <div class="profile-header__stat">
+            <div class="profile-header__stat-value" id="statPosts">0</div>
+            <div class="profile-header__stat-label">Posts</div>
+          </div>
+          <div class="profile-header__stat">
             <div class="profile-header__stat-value" id="statFollowers">0</div>
             <div class="profile-header__stat-label">Followers</div>
           </div>
@@ -102,7 +106,18 @@
     
     <!-- Activity -->
     <section class="profile-section" id="activitySection" style="display: none;">
-      <h2 class="profile-section__title">Recent Activity</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-3);">
+        <h2 class="profile-section__title" style="margin-bottom: 0;">Recent Activity</h2>
+        <select id="activityFilter" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); color: var(--text);">
+            <option value="all">All Activity</option>
+            <option value="PushEvent">Commits</option>
+            <option value="CreateEvent">Repos</option>
+            <option value="WatchEvent">Stars</option>
+            <option value="ForkEvent">Forks</option>
+            <option value="IssuesEvent">Issues</option>
+            <option value="PullRequestEvent">PRs</option>
+        </select>
+      </div>
       <div class="activity-timeline" id="activityTimeline">
         <div class="activity-item">
           <div class="activity-item__time">Today</div>

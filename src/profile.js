@@ -249,8 +249,13 @@ async function loadProfile() {
     await posts.loadPosts();
     renderUserPosts(user.id || user.username);
     
-    // Load activity (Placeholder for now until we have an activity feed)
-    renderActivity();
+    // Update Post Count
+    const postCount = posts.getPostsByUser(user.id || user.username).length;
+    const statPostsEl = document.getElementById('statPosts');
+    if (statPostsEl) statPostsEl.textContent = postCount;
+    
+    // Load activity
+    renderActivity(user);
 
   } catch (error) {
     console.error('Error loading profile:', error);
@@ -277,15 +282,96 @@ function updateFollowButton(isFollowing) {
 // RENDERERS
 // ═══════════════════════════════════════════════════════════════════════════
 
-function renderActivity() {
+async function renderActivity(user) {
+  // Use user passed from loadProfile, or fall back to requestedUser
+  if (!user && requestedUser) {
+      // Should not happen if called correctly
+  }
+
   const timeline = document.getElementById('activityTimeline');
-  // TODO: Build real activity feed from posts/repos
-  timeline.innerHTML = `
-    <div class="activity-item">
-      <div class="activity-item__time">Now</div>
-      <div class="activity-item__content">Viewing profile</div>
-    </div>
-  `;
+  timeline.innerHTML = '<p class="text-dim" style="padding: var(--sp-4); text-align: center;">Loading activity...</p>';
+  
+  try {
+     const username = user ? user.username : (requestedUser || auth.getUser()?.username);
+     if (!username) return;
+
+     // Fetch events
+     const res = await fetch(`https://api.github.com/users/${username}/events`);
+     if (!res.ok) throw new Error('Failed to fetch events');
+     const events = await res.json();
+     
+     // 168 hours = 7 * 24 * 60 * 60 * 1000
+     const CUTOFF = Date.now() - (168 * 3600 * 1000);
+     
+     // Filter by date
+     const recentEvents = events.filter(e => new Date(e.created_at).getTime() > CUTOFF);
+     
+     // Store for filtering
+     const safeEvents = recentEvents || [];
+     
+     renderActivityTimeline(safeEvents);
+     
+     // Bind filter
+     const filter = document.getElementById('activityFilter');
+     if (filter) {
+        // Remove old listener to avoid dupes? It's a fresh render usually.
+        filter.onchange = () => {
+            const type = filter.value;
+            const filtered = type === 'all' 
+            ? safeEvents 
+            : safeEvents.filter(e => e.type === type);
+            renderActivityTimeline(filtered);
+        };
+     }
+     
+  } catch (e) {
+     console.error('Activity load error:', e);
+     timeline.innerHTML = '<p class="text-dim" style="padding: var(--sp-4); text-align: center;">No recent activity found.</p>';
+  }
+}
+
+function renderActivityTimeline(events) {
+   const timeline = document.getElementById('activityTimeline');
+   if (!events || events.length === 0) {
+      timeline.innerHTML = '<p class="text-dim" style="padding: var(--sp-4); text-align: center;">No activity in the last 7 days.</p>';
+      return;
+   }
+   
+   timeline.innerHTML = events.map(e => `
+      <div class="activity-item">
+         <div class="activity-item__time">${formatRelativeTime(e.created_at)}</div>
+         <div class="activity-item__content">
+            ${formatEvent(e)}
+         </div>
+      </div>
+   `).join('');
+}
+
+function formatEvent(e) {
+   const repoName = e.repo.name;
+   const repoLink = `<a href="https://github.com/${repoName}" target="_blank" class="link">${repoName}</a>`;
+   
+   switch(e.type) {
+      case 'PushEvent': 
+         const count = e.payload.size;
+         return `Pushed ${count} commit${count === 1 ? '' : 's'} to ${repoLink}`;
+      case 'WatchEvent':
+         return `Starred ${repoLink}`;
+      case 'CreateEvent':
+         return `Created ${e.payload.ref_type || 'repository'} ${repoLink}`;
+      case 'ForkEvent':
+         return `Forked ${repoLink}`;
+      case 'IssuesEvent':
+         return `${e.payload.action} issue in ${repoLink}`;
+      case 'PullRequestEvent':
+         return `${e.payload.action} PR in ${repoLink}`;
+      case 'MemberEvent':
+         return `Added member to ${repoLink}`;
+      case 'PublicEvent':
+         return `Made ${repoLink} public`;
+      default:
+         return `Activity in ${repoLink}`;
+   }
 }
 
 function renderRepos(repos) {

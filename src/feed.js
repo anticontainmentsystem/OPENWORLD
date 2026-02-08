@@ -46,6 +46,8 @@ async function loadAndRenderPosts() {
   
   await posts.loadPosts();
   renderPosts();
+  // Update stats now that posts are loaded
+  updateAuthUI(auth.getUser());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

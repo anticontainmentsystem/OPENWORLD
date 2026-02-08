@@ -36,17 +36,31 @@ async function readData(path) {
     }
 
     const file = await response.json();
+    
+    // Log content type for debugging
+    console.log(`[System] Read ${path}: Type=${file.type}, Encoding=${file.encoding}, Size=${file.size}`);
+
+    if (!file.content) {
+       console.warn(`[System] File ${path} has no content field`);
+       return { data: [], sha: file.sha };
+    }
+
     let content = Buffer.from(file.content, 'base64').toString('utf-8');
     
     // Remove BOM if present
-    if (content.charCodeAt(0) === 0xFEFF) {
+    if (content.length > 0 && content.charCodeAt(0) === 0xFEFF) {
       content = content.slice(1);
     }
 
-    return {
-      data: JSON.parse(content),
-      sha: file.sha
-    };
+    try {
+      return {
+        data: JSON.parse(content),
+        sha: file.sha
+      };
+    } catch (parseError) {
+      console.error(`[System] JSON parse error for ${path}:`, parseError);
+      return { data: [], sha: file.sha };
+    }
   } catch (error) {
     console.error(`[System] Read error for ${path}:`, error);
     if (error.message.includes('404')) return null;

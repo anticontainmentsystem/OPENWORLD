@@ -72,7 +72,11 @@ export async function handler(event, context) {
     console.error('Create Post Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ 
+        error: error.message,
+        stack: error.stack,
+        details: 'Check Netlify Function Logs' 
+      })
     };
   }
 }

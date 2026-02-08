@@ -4,6 +4,7 @@
  */
 
 import { auth, posts, formatRelativeTime } from './services/auth.js';
+import { usersAPI } from './services/github-data.js';
 
 // Get URL params
 const urlParams = new URLSearchParams(window.location.search);
@@ -99,77 +100,99 @@ function renderLoginButton() {
 // PROFILE
 // ═══════════════════════════════════════════════════════════════════════════
 
-function loadProfile() {
+// ═══════════════════════════════════════════════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function loadProfile() {
   const currentUser = auth.getUser();
-  
-  // Determine which user to show
-  let user;
-  if (requestedUser && currentUser?.username !== requestedUser) {
-    // Viewing someone else's profile - would need API lookup
-    // For now, show empty state
-    document.querySelector('.profile-header').innerHTML = `
-      <div class="profile-header__inner" style="text-align: center;">
-        <p class="text-dim">User @${requestedUser} not found</p>
-        <a href="/pillars/community/" class="btn" style="margin-top: var(--sp-3);">Back to Feed</a>
-      </div>
-    `;
-    document.querySelector('.profile-content').innerHTML = '';
-    return;
-  } else if (currentUser) {
-    user = currentUser;
-  } else {
-    // Not logged in
-    document.querySelector('.profile-header').innerHTML = `
-      <div class="profile-header__inner" style="text-align: center;">
-        <p class="text-dim" style="margin-bottom: var(--sp-3);">Sign in to view your profile</p>
-        <button class="btn btn--primary" id="profileLoginBtn">
-          <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-          </svg>
-          Sign in with GitHub
-        </button>
-      </div>
-    `;
-    document.querySelector('.profile-content').innerHTML = '';
-    document.getElementById('profileLoginBtn')?.addEventListener('click', () => auth.login());
-    return;
+  let user = null;
+  let isOwnProfile = false;
+
+  // Show loading state
+  document.querySelector('.profile-content').style.opacity = '0.5';
+
+  try {
+    if (requestedUser) {
+      // Viewing specific user
+      console.log('Loading profile for:', requestedUser);
+      user = await usersAPI.get(requestedUser);
+      isOwnProfile = currentUser && currentUser.username === requestedUser;
+    } else if (currentUser) {
+      // Viewing own profile (no param)
+      console.log('Loading own profile');
+      // Fetch fresh data
+      user = await usersAPI.get(currentUser.username) || currentUser;
+      isOwnProfile = true;
+    }
+
+    if (!user) {
+      // User not found
+      document.querySelector('.profile-header').innerHTML = `
+        <div class="profile-header__inner" style="text-align: center;">
+          <p class="text-dim">User @${requestedUser || 'unknown'} not found</p>
+          <a href="/pillars/community/" class="btn" style="margin-top: var(--sp-3);">Back to Feed</a>
+        </div>
+      `;
+      document.querySelector('.profile-content').innerHTML = '';
+      return;
+    }
+    
+    // Populate profile
+    document.title = `${user.name} — OpenWorld`;
+    
+    profileAvatar.src = user.avatar;
+    profileAvatar.alt = user.name;
+    profileName.textContent = user.name;
+    profileUsername.textContent = `@${user.username}`;
+    profileBio.textContent = user.bio || 'Two-bit hacker from the Sprawl.';
+    
+    if (user.location) {
+      profileLocation.querySelector('span').textContent = user.location;
+      profileLocation.style.display = 'flex';
+    } else {
+      profileLocation.style.display = 'none';
+    }
+    
+    profileJoined.textContent = new Date(user.joinedAt || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    
+    document.getElementById('statFollowers').textContent = (user.followers || 0).toLocaleString();
+    document.getElementById('statFollowing').textContent = (user.following || 0).toLocaleString();
+    
+    // Fetch latest repos if we have a token
+    let repos = user.repos || [];
+    if (isOwnProfile && auth.getAccessToken()) {
+      // TODO: fetch fresh repos
+    }
+    document.getElementById('statRepos').textContent = repos.length;
+    
+    githubLink.href = `https://github.com/${user.username}`;
+    
+    // Setup actions
+    if (isOwnProfile) {
+      followBtn.textContent = 'Edit Profile';
+      followBtn.onclick = () => {
+        window.location.href = '/pillars/community/profile.html?edit=1';
+      };
+    } else {
+      // TODO: Check follow status
+      followBtn.textContent = 'Follow';
+      followBtn.onclick = () => alert('Follow system coming soon!');
+    }
+    
+    // Render content
+    renderRepos(repos);
+    
+    // Load and render posts
+    await posts.loadPosts(); // Ensure posts are loaded
+    renderUserPosts(user.id || user.username); // Fallback to username if ID missing
+    
+  } catch (error) {
+    console.error('Error loading profile:', error);
+    document.querySelector('.profile-content').innerHTML = `<p class="error">Failed to load profile: ${error.message}</p>`;
+  } finally {
+    document.querySelector('.profile-content').style.opacity = '1';
   }
-  
-  // Populate profile
-  document.title = `${user.name} — OpenWorld`;
-  
-  profileAvatar.src = user.avatar;
-  profileAvatar.alt = user.name;
-  profileName.textContent = user.name;
-  profileUsername.textContent = `@${user.username}`;
-  profileBio.textContent = user.bio || 'No bio yet';
-  
-  if (user.location) {
-    profileLocation.querySelector('span').textContent = user.location;
-    profileLocation.style.display = 'flex';
-  } else {
-    profileLocation.style.display = 'none';
-  }
-  
-  profileJoined.textContent = new Date(user.joinedAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-  
-  document.getElementById('statFollowers').textContent = (user.followers || 0).toLocaleString();
-  document.getElementById('statFollowing').textContent = (user.following || 0).toLocaleString();
-  document.getElementById('statRepos').textContent = (user.repos?.length || 0);
-  
-  githubLink.href = `https://github.com/${user.github || user.username}`;
-  
-  // Follow button becomes Edit Profile for own profile
-  followBtn.textContent = 'Edit Profile';
-  followBtn.addEventListener('click', () => {
-    window.location.href = '/pillars/community/profile.html?edit=1';
-  });
-  
-  // Render repos
-  renderRepos(user.repos || []);
-  
-  // Render user's posts
-  renderUserPosts(user.id);
 }
 
 function renderRepos(repos) {
@@ -199,8 +222,11 @@ function renderRepos(repos) {
   }).join('');
 }
 
-function renderUserPosts(userId) {
-  const userPosts = posts.getPostsByUser(userId);
+function renderUserPosts(userIdOrName) {
+  // Filter posts by userId OR username to be safe
+  const allPosts = posts.getPosts();
+  const userPosts = allPosts.filter(p => p.userId === userIdOrName || p.username === userIdOrName);
+  
   const postsContainer = document.getElementById('userPosts');
   
   if (userPosts.length === 0) {
@@ -209,12 +235,42 @@ function renderUserPosts(userId) {
   }
   
   postsContainer.innerHTML = userPosts.map(post => `
-    <div class="card" style="margin-bottom: var(--sp-2);">
-      <p>${post.content}</p>
-      ${post.repo ? `<a href="${post.repo.url}" class="post-card__repo" style="margin-top: var(--sp-2);">📦 ${post.repo.name}</a>` : ''}
-      <p class="text-muted" style="font-size: 0.75rem; margin-top: var(--sp-2);">${formatRelativeTime(post.createdAt)}</p>
+    <div class="post-card">
+      <div class="post-card__header">
+        <img src="${post.userAvatar || 'https://github.com/identicons/'+post.username+'.png'}" class="post-card__avatar" alt="${post.username}">
+        <div class="post-card__meta">
+          <span class="post-card__name">${escapeHtml(post.userName || post.username)}</span>
+          <span class="post-card__username">@${escapeHtml(post.username)}</span>
+          <span class="post-card__time">${formatRelativeTime(post.createdAt)}</span>
+        </div>
+      </div>
+      <div class="post-card__content">${escapeHtml(post.content || '')}</div>
+      ${post.code ? `
+        <div class="code-block" data-language="${post.code.language}">
+          <div class="code-block__header">
+            <span class="code-block__language">${post.code.language}</span>
+          </div>
+          <pre class="code-block__body"><code>${escapeHtml(post.code.code)}</code></pre>
+        </div>
+      ` : ''}
+      ${post.repo ? `
+        <a href="${post.repo.url}" class="selected-repo" target="_blank" style="margin-top: var(--sp-2);">
+          <span>📦 ${escapeHtml(post.repo.name)}</span>
+          ${post.repo.stars ? `<span>⭐ ${post.repo.stars}</span>` : ''}
+        </a>
+      ` : ''}
     </div>
   `).join('');
+}
+
+function escapeHtml(unsafe) {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

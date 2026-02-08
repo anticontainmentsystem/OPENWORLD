@@ -335,11 +335,42 @@ export const reposAPI = {
   },
 
   async get(username, token = null) {
+    // 1. Try our internal DB first
     try {
       const result = await readData(`users/${username}.json`, token);
-      return result?.data || null;
-    } catch (error) {
-      return null;
+      if (result?.data) return result.data;
+    } catch (ignore) {
+      // Ignore read errors, proceed to fallback
+    }
+
+    // 2. Fallback to GitHub API (User might exist but not have a profile file)
+    try {
+       console.log(`[UsersAPI] Falling back to GitHub for ${username}`);
+       const headers = { 'Accept': 'application/vnd.github.v3+json' };
+       if (token) headers['Authorization'] = `Bearer ${token}`;
+       
+       const res = await fetch(`${API_BASE}/users/${username}`, { headers });
+       if (!res.ok) return null;
+       
+       const ghUser = await res.json();
+       
+       // Return a normalized profile object
+       return {
+           id: String(ghUser.id),
+           username: ghUser.login, // Use correct casing from GitHub
+           name: ghUser.name || ghUser.login,
+           avatar: ghUser.avatar_url,
+           bio: ghUser.bio,
+           location: ghUser.location,
+           joinedAt: ghUser.created_at,
+           followers: ghUser.followers,
+           following: ghUser.following,
+           repos: [], // Base fallback has no cached repos
+           website: ghUser.blog || ghUser.html_url
+       };
+    } catch (e) {
+        console.error('GitHub user fetch failed', e);
+        return null;
     }
   },
   

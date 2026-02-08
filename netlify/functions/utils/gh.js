@@ -3,7 +3,8 @@
  * Uses System PAT for internal operations (Create Post, Delete, etc.)
  */
 
-const { GITHUB_PAT, GITHUB_OWNER, GITHUB_REPO } = process.env;
+const { GITHUB_OWNER, GITHUB_REPO } = process.env;
+const GITHUB_PAT = process.env.GITHUB_PAT ? process.env.GITHUB_PAT.trim() : '';
 
 // Config
 const DATA_OWNER = GITHUB_OWNER || 'anticontainmentsystem';

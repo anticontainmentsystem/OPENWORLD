@@ -69,21 +69,21 @@ export async function handler(event, context) {
       if (!post.reactedBy) {
         post.reactedBy = {};
       }
+      const userId = String(user.id);
+      
+      // Ensure specific reaction array exists
       if (!post.reactedBy[reactionType]) {
         post.reactedBy[reactionType] = [];
       }
       
-      const userId = String(user.id);
       const hasReacted = post.reactedBy[reactionType].includes(userId);
       
       if (hasReacted) {
         // Remove reaction (toggle off)
-        post.reactions[reactionType] = Math.max(0, (post.reactions[reactionType] || 0) - 1);
         post.reactedBy[reactionType] = post.reactedBy[reactionType].filter(id => id !== userId);
         message = `Remove ${reactionType} from post ${postId} via OpenWorld Proxy`;
       } else {
         // Add reaction (toggle on)
-        post.reactions[reactionType] = (post.reactions[reactionType] || 0) + 1;
         post.reactedBy[reactionType].push(userId);
         message = `Add ${reactionType} to post ${postId} via OpenWorld Proxy`;
         
@@ -92,7 +92,8 @@ export async function handler(event, context) {
           import('./utils/notifications.js').then(({ createNotification }) => {
              createNotification(post.username, 'reaction', {
                username: user.login,
-               avatar: user.avatar_url
+               avatar: user.avatar_url,
+               nodeId: user.node_id // Pass node_id if available or fetch it
              }, {
                postId: post.id,
                type: reactionType,
@@ -101,6 +102,10 @@ export async function handler(event, context) {
           }).catch(console.error);
         }
       }
+      
+      // FORCE CONSISTENCY: Count must match unique users
+      // This fixes legacy/mock data issues where count != array length
+      post.reactions[reactionType] = post.reactedBy[reactionType].length;
       
       // Write data before returning
       await writeData('posts.json', posts, sha, message);

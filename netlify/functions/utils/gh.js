@@ -36,7 +36,12 @@ async function readData(path) {
     }
 
     const file = await response.json();
-    const content = Buffer.from(file.content, 'base64').toString('utf-8');
+    let content = Buffer.from(file.content, 'base64').toString('utf-8');
+    
+    // Remove BOM if present
+    if (content.charCodeAt(0) === 0xFEFF) {
+      content = content.slice(1);
+    }
 
     return {
       data: JSON.parse(content),

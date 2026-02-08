@@ -38,11 +38,26 @@ export async function readData(path, token = null) {
     }
     
     const file = await response.json();
-    const content = atob(file.content);
-    return {
-      data: JSON.parse(content),
-      sha: file.sha
-    };
+    let content = decodeURIComponent(escape(window.atob(file.content)));
+    
+    // Remove BOM if present
+    if (content.charCodeAt(0) === 0xFEFF) {
+      content = content.slice(1);
+    }
+    
+    try {
+      return {
+        data: JSON.parse(content),
+        sha: file.sha
+      };
+    } catch (e) {
+      console.error('[GitHubData] React content parse error:', e);
+      // Return empty data but keep SHA so next write can fix it
+      return {
+        data: [],
+        sha: file.sha
+      };
+    }
   } catch (error) {
     console.error('[GitHubData] Read error:', error);
     // If it's a 404 (returned null above), we return null. 

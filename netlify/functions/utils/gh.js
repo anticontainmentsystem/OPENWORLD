@@ -11,8 +11,13 @@ const DATA_REPO = GITHUB_REPO || 'openworld-data';
 const DATA_BRANCH = 'main';
 const API_BASE = 'https://api.github.com';
 
+// Validate PAT on startup
 if (!GITHUB_PAT) {
-  console.error('GITHUB_PAT is missing from environment variables!');
+  console.error('[System] GITHUB_PAT is missing from environment variables!');
+} else if (!GITHUB_PAT.startsWith('github_pat_')) {
+  console.warn('[System] GITHUB_PAT does not start with "github_pat_". It might be a classic token or malformed.');
+} else {
+  console.log(`[System] GITHUB_PAT loaded (starts with ${GITHUB_PAT.substring(0, 15)}...)`);
 }
 
 /**

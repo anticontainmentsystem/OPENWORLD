@@ -17,13 +17,14 @@ export async function handler(event, context) {
   const targetPath = path || '';
   const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${targetPath}`;
   
-  // Use System PAT for higher rate limits
-  const GITHUB_PAT = process.env.GITHUB_PAT;
+  // Prefer user token if provided (for private repos), fallback to System PAT
+  const userToken = event.headers.authorization ? event.headers.authorization.replace('Bearer ', '') : null;
+  const token = userToken || process.env.GITHUB_PAT;
 
   try {
     const response = await fetch(apiUrl, {
       headers: {
-        'Authorization': `Bearer ${GITHUB_PAT}`,
+        'Authorization': `Bearer ${token}`,
         'Accept': 'application/vnd.github.v3+json'
       }
     });

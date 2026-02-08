@@ -4,102 +4,126 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Signing in... — OpenWorld</title>
-  <link rel="stylesheet" href="/src/styles/core.css">
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      background: #0c0c0a;
+      color: #f5f5f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       text-align: center;
     }
     .auth-status {
-      padding: var(--sp-4);
+      padding: 2rem;
       max-width: 400px;
     }
     .auth-status__icon {
-      font-size: 2rem;
-      margin-bottom: var(--sp-2);
+      font-size: 3rem;
+      margin-bottom: 1rem;
     }
-    .auth-status__text {
-      color: var(--text-dim);
-    }
-    .auth-status__debug {
-      margin-top: var(--sp-3);
-      padding: var(--sp-2);
-      background: var(--surface);
-      border-radius: var(--radius);
-      font-family: var(--font-mono);
+    h1 { margin-bottom: 0.5rem; }
+    p { color: #888; margin-bottom: 1rem; }
+    .debug {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #1a1a18;
+      border-radius: 4px;
+      font-family: monospace;
       font-size: 0.75rem;
       text-align: left;
       word-break: break-all;
       max-height: 200px;
       overflow: auto;
+      color: #b87333;
     }
+    .error { color: #ff6b6b; }
   </style>
 </head>
 <body>
   <div class="auth-status">
-    <div class="auth-status__icon">◈</div>
+    <div class="auth-status__icon" id="icon">◈</div>
     <h1 id="title">Signing in...</h1>
-    <p class="auth-status__text" id="message">Completing GitHub authentication</p>
-    <div class="auth-status__debug" id="debug" style="display: none;"></div>
+    <p id="message">Completing GitHub authentication</p>
+    <div class="debug" id="debug" style="display: none;"></div>
   </div>
   
   <script>
+    // Immediately parse and store user data
     (function() {
-      const title = document.getElementById('title');
-      const message = document.getElementById('message');
-      const debug = document.getElementById('debug');
+      var title = document.getElementById('title');
+      var message = document.getElementById('message');
+      var icon = document.getElementById('icon');
+      var debug = document.getElementById('debug');
       
-      function showDebug(text) {
-        debug.style.display = 'block';
-        debug.textContent = text;
+      function showError(text, debugInfo) {
+        icon.textContent = '✕';
+        title.textContent = 'Error';
+        title.className = 'error';
+        message.textContent = text;
+        if (debugInfo) {
+          debug.style.display = 'block';
+          debug.textContent = debugInfo;
+        }
+      }
+      
+      function showSuccess(name) {
+        icon.textContent = '✓';
+        title.textContent = 'Welcome, ' + name + '!';
+        message.textContent = 'Redirecting to community...';
       }
       
       try {
-        const params = new URLSearchParams(window.location.search);
-        const userData = params.get('user');
+        // Get user data from URL
+        var urlParams = new URLSearchParams(window.location.search);
+        var userData = urlParams.get('user');
+        
+        console.log('[AuthSuccess] URL params:', window.location.search.substring(0, 100) + '...');
+        console.log('[AuthSuccess] User data param exists:', !!userData);
         
         if (!userData) {
-          title.textContent = 'Error';
-          message.textContent = 'No user data received from callback';
-          showDebug('URL: ' + window.location.href);
+          showError('No user data received', 'URL: ' + window.location.href);
           return;
         }
         
-        const user = JSON.parse(decodeURIComponent(userData));
+        // Decode and parse
+        var decoded = decodeURIComponent(userData);
+        console.log('[AuthSuccess] Decoded length:', decoded.length);
+        
+        var user = JSON.parse(decoded);
+        console.log('[AuthSuccess] Parsed user:', user.username);
         
         if (!user || !user.username) {
-          title.textContent = 'Error';
-          message.textContent = 'Invalid user data structure';
-          showDebug(JSON.stringify(user, null, 2));
+          showError('Invalid user data', JSON.stringify(user, null, 2));
           return;
         }
         
-        // Store user in localStorage
-        localStorage.setItem('openworld_user', JSON.stringify(user));
+        // Store in localStorage
+        var userJson = JSON.stringify(user);
+        localStorage.setItem('openworld_user', userJson);
+        console.log('[AuthSuccess] Saved to localStorage');
         
-        // Verify it was stored
-        const stored = localStorage.getItem('openworld_user');
+        // Verify storage
+        var stored = localStorage.getItem('openworld_user');
         if (!stored) {
-          title.textContent = 'Error';
-          message.textContent = 'Failed to save to localStorage';
+          showError('Failed to save to localStorage', 'Storage may be disabled');
           return;
         }
+        console.log('[AuthSuccess] Verified in localStorage');
         
-        title.textContent = 'Welcome, ' + user.name + '!';
-        message.textContent = 'Redirecting to community...';
+        // Success!
+        showSuccess(user.name || user.username);
         
-        // Redirect after short delay so user sees success
+        // Redirect after short delay
         setTimeout(function() {
           window.location.href = '/pillars/community/';
-        }, 500);
+        }, 800);
         
       } catch (e) {
-        title.textContent = 'Error';
-        message.textContent = 'Failed to process authentication: ' + e.message;
-        showDebug('Error: ' + e.toString() + '\n\nURL: ' + window.location.href);
+        console.error('[AuthSuccess] Error:', e);
+        showError('Failed to process: ' + e.message, 'Error: ' + e.toString() + '\n\nStack: ' + e.stack);
       }
     })();
   </script>

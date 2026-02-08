@@ -172,8 +172,8 @@ export class CommentThread {
       <div class="comment-code-wrap">
         <div class="comment-code-header">
           <select id="codeLang" class="comment-code-lang">
-            ${Object.entries(LANGUAGES).map(([key, label]) => 
-              `<option value="${key}">${label}</option>`
+            ${LANGUAGES.map(lang => 
+              `<option value="${lang.id}">${lang.name}</option>`
             ).join('')}
           </select>
           <button class="btn btn--sm" id="addCodeBtn">Add Code</button>

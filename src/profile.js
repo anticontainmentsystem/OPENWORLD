@@ -322,7 +322,7 @@ function renderRepos(repos) {
 
 function renderRepoCard(repo, isPinned) {
   const langClass = repo.language?.toLowerCase().replace(/[^a-z]/g, '') || 'unknown';
-  const isOwner = auth.getUser()?.username === (repo.owner.login || repo.owner);
+  const isOwner = auth.getUser()?.username === (repo.owner?.login || repo.owner);
   // Check if starred (saved)
   const isStarred = (auth.getUser()?.starredRepos || []).some(r => (r.id === repo.id) || (r.name === repo.name));
   

@@ -55,12 +55,15 @@ export class GithubBrowser {
     } else if (this.mode === 'files') {
       content = '<div class="gh-browser__loading">Loading files...</div>';
       // Safe check for owner to avoid error
-      const owner = this.currentRepo.owner.login || this.currentRepo.owner || 'unknown';
-      headerTitle = `${owner}/${this.currentRepo.name}`;
+      let owner = 'unknown';
+      if (this.currentRepo && this.currentRepo.owner) {
+        owner = this.currentRepo.owner.login || this.currentRepo.owner;
+      }
+      headerTitle = `${owner}/${this.currentRepo ? this.currentRepo.name : '...'}`;
       if (this.currentPath) headerTitle += `/${this.currentPath}`;
     } else if (this.mode === 'forks') {
       content = '<div class="gh-browser__loading">Loading forks...</div>';
-      headerTitle = `Forks of ${this.currentRepo.name}`;
+      headerTitle = `Forks of ${this.currentRepo ? this.currentRepo.name : '...'}`;
     }
 
     this.container.innerHTML = `
@@ -96,8 +99,8 @@ export class GithubBrowser {
     this.bindEvents();
     
     // Fetch async content if needed
-    if (this.mode === 'files') this.loadFiles();
-    if (this.mode === 'forks') this.loadForks();
+    if (this.mode === 'files' && this.currentRepo) this.loadFiles();
+    if (this.mode === 'forks' && this.currentRepo) this.loadForks();
   }
 
   renderRepoList() {
@@ -307,16 +310,45 @@ export class GithubBrowser {
   bindContentEvents() {
     this.container.querySelectorAll('.gh-item').forEach(item => {
       item.addEventListener('click', (e) => {
-        const action = e.target.dataset.action;
+        // Find the closest button or if the item itself was clicked
+        const btn = e.target.closest('.gh-btn');
+        const action = btn ? btn.dataset.action : null;
+        
         if (!action) return;
         
-        const repoData = item.dataset.repoJson ? JSON.parse(item.dataset.repoJson.replace(/&#39;/g, "'")) : null;
-        const fileData = item.dataset.item ? JSON.parse(item.dataset.item.replace(/&#39;/g, "'")) : null;
+        // Proper JSON parse with error handling
+        let repoData = null;
+        let fileData = null;
+        
+        try {
+            if (item.dataset.repoJson) {
+                // Handle both single and double quote replacements if needed
+                repoData = JSON.parse(item.dataset.repoJson.replace(/&#39;/g, "'"));
+            }
+            if (item.dataset.item) {
+                fileData = JSON.parse(item.dataset.item.replace(/&#39;/g, "'"));
+            }
+        } catch (err) {
+            console.error('Error parsing data attributes:', err);
+            return;
+        }
 
         if (action === 'select') {
+          // Add owner if missing (sometimes just string)
+          if (repoData && typeof repoData.owner === 'string') {
+              repoData.owner = { login: repoData.owner };
+          }
           this.onSelect({ type: 'repo', data: repoData });
         } else if (action === 'browse') {
-          this.navigateTo(repoData, '', 'files');
+          // Ensure we have a valid repo object before navigating
+          if (repoData) {
+             if (!repoData.owner) {
+                 repoData.owner = { login: 'unknown' }; 
+             } else if (typeof repoData.owner === 'string') {
+                 repoData.owner = { login: repoData.owner };
+             }
+             this.navigateTo(repoData, '', 'files');
+          }
         } else if (action === 'dive') {
           this.navigateTo(this.currentRepo, fileData.path, 'files');
         } else if (action === 'select-file') {

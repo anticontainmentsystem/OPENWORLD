@@ -1,16 +1,25 @@
 /**
  * Comment Thread Component
- * Displays comments on a post and allows adding new comments
+ * Displays comments on a post and allows adding new comments with attachments
  */
 import { commentsAPI } from '../services/github-data.js';
-import { auth, formatRelativeTime } from '../services/auth.js';
+import { auth, fetchUserRepos, formatRelativeTime } from '../services/auth.js';
+import { CodeEditor, LANGUAGES, createCodeBlock } from './code-editor.js';
+import { GithubBrowser } from './GithubBrowser.js';
 
 export class CommentThread {
   constructor(container, post, options = {}) {
     this.container = container;
     this.post = post;
-    this.comments = post.comments || [];
+    this.comments = Array.isArray(post.comments) ? post.comments : [];
     this.onCommentAdded = options.onCommentAdded || (() => {});
+    
+    // Attachment state
+    this.currentAttachment = null;
+    this.codeEditor = null;
+    this.ghBrowser = null;
+    this.userRepos = [];
+    
     this.render();
     this.bindEvents();
   }
@@ -39,7 +48,16 @@ export class CommentThread {
             <button class="btn btn--primary btn--sm" id="submitComment">Post</button>
           </div>
           <div class="comment-thread__attachments" id="attachPanel" style="display: none;">
-            <small class="text-dim">Attachments coming soon!</small>
+            <div class="attach-tabs">
+              <button class="attach-tab attach-tab--active" data-tab="code">💻 Code</button>
+              <button class="attach-tab" data-tab="repo">📦 Repo</button>
+            </div>
+            <div class="attach-content" id="attachContent">
+              <!-- Code Editor or Repo Browser will be injected here -->
+            </div>
+            <div class="attach-preview" id="attachPreview" style="display: none;">
+              <!-- Preview of selected attachment -->
+            </div>
           </div>
         ` : `
           <div class="comment-thread__login">
@@ -103,6 +121,8 @@ export class CommentThread {
     const input = this.container.querySelector('#commentInput');
     const submitBtn = this.container.querySelector('#submitComment');
     const loginBtn = this.container.querySelector('#loginToComment');
+    const attachBtn = this.container.querySelector('#attachBtn');
+    const attachPanel = this.container.querySelector('#attachPanel');
 
     if (submitBtn && input) {
       submitBtn.onclick = () => this.handleSubmit(input);
@@ -117,11 +137,137 @@ export class CommentThread {
     if (loginBtn) {
       loginBtn.onclick = () => auth.login();
     }
+
+    // Attachment panel toggle
+    if (attachBtn && attachPanel) {
+      attachBtn.onclick = async () => {
+        const isVisible = attachPanel.style.display !== 'none';
+        attachPanel.style.display = isVisible ? 'none' : 'block';
+        
+        if (!isVisible) {
+          // Initialize code editor by default
+          this.showCodeTab();
+        }
+      };
+    }
+
+    // Tab switching
+    this.container.querySelectorAll('.attach-tab').forEach(tab => {
+      tab.onclick = () => {
+        this.container.querySelectorAll('.attach-tab').forEach(t => t.classList.remove('attach-tab--active'));
+        tab.classList.add('attach-tab--active');
+        
+        if (tab.dataset.tab === 'code') {
+          this.showCodeTab();
+        } else if (tab.dataset.tab === 'repo') {
+          this.showRepoTab();
+        }
+      };
+    });
+  }
+
+  showCodeTab() {
+    const content = this.container.querySelector('#attachContent');
+    content.innerHTML = `
+      <div class="comment-code-wrap">
+        <div class="comment-code-header">
+          <select id="codeLang" class="comment-code-lang">
+            ${Object.entries(LANGUAGES).map(([key, label]) => 
+              `<option value="${key}">${label}</option>`
+            ).join('')}
+          </select>
+          <button class="btn btn--sm" id="addCodeBtn">Add Code</button>
+        </div>
+        <div id="codeEditorMount" style="min-height: 100px;"></div>
+      </div>
+    `;
+
+    const mount = content.querySelector('#codeEditorMount');
+    this.codeEditor = new CodeEditor(mount, { minHeight: 100 });
+    
+    content.querySelector('#addCodeBtn').onclick = () => {
+      const code = this.codeEditor.getValue();
+      const lang = content.querySelector('#codeLang').value;
+      
+      if (code.trim()) {
+        this.currentAttachment = {
+          code: { code, language: lang }
+        };
+        this.showPreview();
+      }
+    };
+  }
+
+  async showRepoTab() {
+    const content = this.container.querySelector('#attachContent');
+    content.innerHTML = '<div class="text-dim text-center">Loading repos...</div>';
+    
+    // Load user repos if not loaded
+    if (this.userRepos.length === 0) {
+      this.userRepos = await fetchUserRepos();
+    }
+    
+    content.innerHTML = '<div id="repoBrowserMount"></div>';
+    const mount = content.querySelector('#repoBrowserMount');
+    
+    this.ghBrowser = new GithubBrowser(mount, this.userRepos, (selected) => {
+      if (selected.type === 'repo') {
+        this.currentAttachment = {
+          repo: {
+            name: selected.name,
+            url: selected.html_url || `https://github.com/${selected.full_name}`,
+            description: selected.description
+          }
+        };
+        this.showPreview();
+      }
+    });
+  }
+
+  showPreview() {
+    const preview = this.container.querySelector('#attachPreview');
+    if (!this.currentAttachment) {
+      preview.style.display = 'none';
+      return;
+    }
+
+    let html = '<div class="attach-preview-content">';
+    
+    if (this.currentAttachment.code) {
+      html += `
+        <div class="attach-preview-item">
+          <span class="code-lang">${this.currentAttachment.code.language}</span>
+          <code>${this.escapeHtml(this.currentAttachment.code.code.substring(0, 50))}...</code>
+          <button class="btn btn--sm btn--danger" id="removeAttach">✕</button>
+        </div>
+      `;
+    }
+    
+    if (this.currentAttachment.repo) {
+      html += `
+        <div class="attach-preview-item">
+          <span>📦 ${this.currentAttachment.repo.name}</span>
+          <button class="btn btn--sm btn--danger" id="removeAttach">✕</button>
+        </div>
+      `;
+    }
+    
+    html += '</div>';
+    preview.innerHTML = html;
+    preview.style.display = 'block';
+    
+    // Hide attachment panel, show preview
+    this.container.querySelector('#attachPanel').style.display = 'none';
+    
+    preview.querySelector('#removeAttach').onclick = () => {
+      this.currentAttachment = null;
+      preview.style.display = 'none';
+    };
   }
 
   async handleSubmit(input) {
     const content = input.value.trim();
-    if (!content) return;
+    if (!content && !this.currentAttachment) return;
 
     const token = auth.getAccessToken();
     if (!token) {
@@ -134,7 +280,12 @@ export class CommentThread {
     submitBtn.textContent = '...';
 
     try {
-      const newComment = await commentsAPI.add(this.post.id, content, null, token);
+      const newComment = await commentsAPI.add(
+        this.post.id, 
+        content, 
+        this.currentAttachment, 
+        token
+      );
       
       // Add to local list
       this.comments.push(newComment);
@@ -150,8 +301,10 @@ export class CommentThread {
       const header = this.container.querySelector('.comment-thread__header span');
       header.textContent = `💬 ${this.comments.length} Comment${this.comments.length !== 1 ? 's' : ''}`;
       
-      // Clear input
+      // Clear input and attachment
       input.value = '';
+      this.currentAttachment = null;
+      this.container.querySelector('#attachPreview').style.display = 'none';
       
       // Callback
       this.onCommentAdded(newComment);
@@ -164,3 +317,4 @@ export class CommentThread {
     }
   }
 }
+

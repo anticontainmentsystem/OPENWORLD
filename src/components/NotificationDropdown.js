@@ -59,8 +59,24 @@ export class NotificationDropdown {
       notificationService.markAsRead(); 
     };
     
-    // Prevent menu closing when clicking inside list
-    list.onclick = (e) => e.stopPropagation();
+    // Handle Item Clicks (Delegation)
+    list.onclick = (e) => {
+      e.stopPropagation();
+      
+      const item = e.target.closest('.notification-item-inline');
+      if (!item) return;
+
+      // If clicked the actor link specifically, let it handle navigation
+      if (e.target.closest('.notif-actor-link')) {
+        return;
+      }
+      
+      // Otherwise navigate to context
+      const url = item.dataset.url;
+      if (url) {
+        window.location.href = url;
+      }
+    };
   }
 
   updateUI(notifications, unreadCount) {
@@ -82,20 +98,20 @@ export class NotificationDropdown {
     }
 
     listItems.innerHTML = notifications.map(n => `
-      <div class="notification-item-inline ${n.read ? '' : 'unread'}">
+      <div class="notification-item-inline ${n.read ? '' : 'unread'}" data-url="${this.getUrl(n)}" style="cursor: pointer;">
         <div class="notification-icon-inline">
           ${this.getIcon(n.type)}
         </div>
         <div class="notification-content">
           <p class="notification-text">
-            <strong>@${n.actor.username}</strong> ${this.getText(n)}
+            <strong><a href="/pillars/community/profile.html?user=${n.actor.username}" class="notif-actor-link">@${n.actor.username}</a></strong> ${this.getText(n)}
           </p>
           <span class="notification-time">${formatRelativeTime(n.createdAt)}</span>
         </div>
       </div>
     `).join('');
   }
-// ... getIcon and getText helper methods remain same ...
+
   getIcon(type) {
     switch (type) {
       case 'follow': return '👤';
@@ -113,6 +129,20 @@ export class NotificationDropdown {
       case 'reaction': return `reacted to your post`;
       case 'reply': return `replied to your post`;
       default: return 'interacted with you';
+    }
+  }
+
+  getUrl(n) {
+    switch (n.type) {
+      case 'follow': 
+        return `/pillars/community/profile.html?user=${n.actor.username}`;
+      case 'star':
+        return `https://github.com/${n.data.repoName}`;
+      case 'reaction':
+      case 'reply':
+        return `/pillars/community/?post=${n.data.postId}`; // Simplified deep link
+      default: 
+        return '#';
     }
   }
 }

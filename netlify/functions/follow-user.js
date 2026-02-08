@@ -3,6 +3,7 @@
  * Updates social graph for both users
  */
 import { readData, writeData } from './utils/gh.js';
+import { createNotification } from './utils/notifications.js';
 
 export async function handler(event, context) {
   if (event.httpMethod !== 'POST') {

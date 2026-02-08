@@ -17,11 +17,23 @@ let userRepos = [];
 let selectedRepo = null;
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initAuth();
-  renderPosts();
+  await loadAndRenderPosts();
   setupEventListeners();
 });
+
+async function loadAndRenderPosts() {
+  feedPosts.innerHTML = `
+    <div class="card" style="text-align: center; padding: var(--sp-5);">
+      <div style="font-size: 1.5rem; margin-bottom: var(--sp-2);">⏳</div>
+      <p class="text-dim">Loading posts...</p>
+    </div>
+  `;
+  
+  await posts.loadPosts();
+  renderPosts();
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AUTH HANDLING
@@ -422,8 +434,9 @@ function handlePostActions(e) {
   }
 }
 
-function handlePost() {
+async function handlePost() {
   const input = document.getElementById('composerInput');
+  const postBtn = document.getElementById('postBtn');
   const content = input.value.trim();
   
   if (!content) {
@@ -431,8 +444,12 @@ function handlePost() {
     return;
   }
   
+  // Show loading state
+  postBtn.disabled = true;
+  postBtn.textContent = 'Posting...';
+  
   try {
-    const newPost = posts.createPost({
+    const newPost = await posts.createPost({
       content,
       type: selectedRepo ? 'release' : 'thought',
       repo: selectedRepo
@@ -441,10 +458,10 @@ function handlePost() {
     // Add to top of feed
     feedPosts.insertAdjacentHTML('afterbegin', renderPostCard(newPost));
     
-    // Remove "no posts" message if present
-    const emptyState = feedPosts.querySelector('.card');
-    if (emptyState && emptyState.textContent.includes('No posts yet')) {
-      emptyState.remove();
+    // Remove loading/empty state if present
+    const loadingOrEmpty = feedPosts.querySelector('.card');
+    if (loadingOrEmpty && (loadingOrEmpty.textContent.includes('No posts') || loadingOrEmpty.textContent.includes('Loading'))) {
+      loadingOrEmpty.remove();
     }
     
     // Clear input
@@ -454,7 +471,11 @@ function handlePost() {
     
     updatePostCount();
   } catch (error) {
-    alert(error.message);
+    console.error('[Feed] Post error:', error);
+    alert('Failed to post: ' + error.message);
+  } finally {
+    postBtn.disabled = false;
+    postBtn.textContent = 'Post';
   }
 }
 

@@ -1,10 +1,11 @@
 /**
  * OpenWorld Auth Service
- * Real GitHub OAuth via Netlify Functions
+ * Real GitHub OAuth via Netlify Functions + GitHub data storage
  */
 
+import { postsAPI, usersAPI } from './github-data.js';
+
 const STORAGE_KEY = 'openworld_user';
-const POSTS_KEY = 'openworld_posts';
 
 class AuthService {
   constructor() {
@@ -28,7 +29,6 @@ class AuthService {
   }
 
   getUser() {
-    console.log('[Auth] getUser called, user:', this.user ? this.user.username : 'null');
     return this.user;
   }
 
@@ -41,7 +41,6 @@ class AuthService {
   }
 
   login() {
-    // Redirect to Netlify function for GitHub OAuth
     window.location.href = '/.netlify/functions/auth-login';
   }
 
@@ -56,6 +55,13 @@ class AuthService {
     
     this.user = { ...this.user, ...updates };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.user));
+    
+    // Also save to GitHub
+    const token = this.getAccessToken();
+    if (token) {
+      usersAPI.save(this.user, token).catch(console.error);
+    }
+    
     this.notify();
   }
 
@@ -74,25 +80,27 @@ class AuthService {
 export const auth = new AuthService();
 
 // ═══════════════════════════════════════════════════════════════════════════
-// POSTS SERVICE
+// POSTS SERVICE (GitHub-backed)
 // ═══════════════════════════════════════════════════════════════════════════
 
 class PostsService {
   constructor() {
-    this.posts = this.loadPosts();
+    this.posts = [];
+    this.loaded = false;
   }
 
-  loadPosts() {
+  async loadPosts() {
+    if (this.loaded) return this.posts;
     try {
-      const stored = localStorage.getItem(POSTS_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
+      console.log('[Posts] Loading from GitHub...');
+      this.posts = await postsAPI.getAll();
+      this.loaded = true;
+      console.log('[Posts] Loaded', this.posts.length, 'posts');
+    } catch (error) {
+      console.error('[Posts] Load error:', error);
+      this.posts = [];
     }
-  }
-
-  savePosts() {
-    localStorage.setItem(POSTS_KEY, JSON.stringify(this.posts));
+    return this.posts;
   }
 
   getPosts() {
@@ -103,9 +111,12 @@ class PostsService {
     return this.posts.filter(p => p.userId === userId);
   }
 
-  createPost({ content, type = 'thought', repo = null }) {
+  async createPost({ content, type = 'thought', repo = null, code = null }) {
     const user = auth.getUser();
     if (!user) throw new Error('Not logged in');
+    
+    const token = auth.getAccessToken();
+    if (!token) throw new Error('No access token');
 
     const post = {
       id: 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
@@ -116,34 +127,56 @@ class PostsService {
       content,
       type,
       repo,
+      code,
       reactions: { fire: 0, heart: 0, rocket: 0 },
       comments: 0,
       createdAt: new Date().toISOString()
     };
 
-    this.posts.unshift(post);
-    this.savePosts();
+    try {
+      await postsAPI.create(post, token);
+      this.posts.unshift(post);
+      console.log('[Posts] Created post:', post.id);
+    } catch (error) {
+      console.error('[Posts] Create error:', error);
+      throw new Error('Failed to save post: ' + error.message);
+    }
+    
     return post;
   }
 
-  reactToPost(postId, reactionType) {
+  async reactToPost(postId, reactionType) {
+    const token = auth.getAccessToken();
     const post = this.posts.find(p => p.id === postId);
+    
     if (post && post.reactions[reactionType] !== undefined) {
       post.reactions[reactionType]++;
-      this.savePosts();
+      
+      if (token) {
+        try {
+          await postsAPI.react(postId, reactionType, token);
+        } catch (error) {
+          console.error('[Posts] React error:', error);
+        }
+      }
     }
     return post;
   }
 
-  deletePost(postId) {
+  async deletePost(postId) {
     const user = auth.getUser();
-    if (!user) return false;
+    const token = auth.getAccessToken();
+    if (!user || !token) return false;
 
     const index = this.posts.findIndex(p => p.id === postId && p.userId === user.id);
     if (index > -1) {
-      this.posts.splice(index, 1);
-      this.savePosts();
-      return true;
+      try {
+        await postsAPI.delete(postId, user.username, token);
+        this.posts.splice(index, 1);
+        return true;
+      } catch (error) {
+        console.error('[Posts] Delete error:', error);
+      }
     }
     return false;
   }

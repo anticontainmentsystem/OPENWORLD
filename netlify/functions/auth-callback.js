@@ -46,7 +46,7 @@ export async function handler(event, context) {
     const accessToken = tokenData.access_token;
     
     // Fetch user data from GitHub
-    const userResponse = await fetch('https://github.com/api/graphql', {
+    const userResponse = await fetch('https://api.github.com/graphql', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,

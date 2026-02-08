@@ -8,11 +8,25 @@ import { auth } from '../services/auth.js';
 import { reposAPI } from '../services/github-data.js';
 
 export class GithubBrowser {
-  constructor(options = {}) {
-    this.container = options.container;
-    this.onSelect = options.onSelect || (() => {});
-    this.onClose = options.onClose || (() => {});
-    this.userRepos = options.userRepos || [];
+  constructor(container, userRepos = [], onSelect = () => {}, onClose = () => {}) {
+    // Handle both new argument style and legacy options object
+    if (container && container.constructor === Object && !container.nodeType) {
+      const options = container;
+      this.container = options.container;
+      this.userRepos = options.userRepos || [];
+      this.onSelect = options.onSelect || (() => {});
+      this.onClose = options.onClose || (() => {});
+    } else {
+      this.container = container;
+      this.userRepos = userRepos;
+      this.onSelect = onSelect;
+      this.onClose = onClose;
+    }
+
+    if (!this.container) {
+      console.error('[GithubBrowser] No container provided!');
+      return;
+    }
     
     // State
     this.mode = 'repos'; // 'repos', 'files', 'forks'
@@ -24,6 +38,8 @@ export class GithubBrowser {
   }
 
   render() {
+    if (!this.container) return;
+
     // Determine content based on mode
     let content = '';
     let headerTitle = 'Select Repository';
@@ -38,7 +54,10 @@ export class GithubBrowser {
       headerTitle = 'My Repositories';
     } else if (this.mode === 'files') {
       content = '<div class="gh-browser__loading">Loading files...</div>';
-      headerTitle = `${this.currentRepo.name} / ${this.currentPath}`;
+      // Safe check for owner to avoid error
+      const owner = this.currentRepo.owner.login || this.currentRepo.owner || 'unknown';
+      headerTitle = `${owner}/${this.currentRepo.name}`;
+      if (this.currentPath) headerTitle += `/${this.currentPath}`;
     } else if (this.mode === 'forks') {
       content = '<div class="gh-browser__loading">Loading forks...</div>';
       headerTitle = `Forks of ${this.currentRepo.name}`;

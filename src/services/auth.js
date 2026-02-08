@@ -99,7 +99,9 @@ class PostsService {
     if (this.loaded) return this.posts;
     try {
       console.log('[Posts] Loading from GitHub...');
-      this.posts = await postsAPI.getAll();
+      // Use token if available to avoid rate limits
+      const token = auth.getAccessToken();
+      this.posts = await postsAPI.getAll(token);
       this.loaded = true;
       console.log('[Posts] Loaded', this.posts.length, 'posts');
     } catch (error) {

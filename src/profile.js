@@ -116,13 +116,16 @@ async function loadProfile() {
     if (requestedUser) {
       // Viewing specific user
       console.log('Loading profile for:', requestedUser);
-      user = await usersAPI.get(requestedUser);
+      // Use token for higher rate limits if available
+      const token = auth.getAccessToken();
+      user = await usersAPI.get(requestedUser, token);
       isOwnProfile = currentUser && currentUser.username === requestedUser;
     } else if (currentUser) {
       // Viewing own profile (no param)
       console.log('Loading own profile');
       // Fetch fresh data
-      user = await usersAPI.get(currentUser.username) || currentUser;
+      const token = auth.getAccessToken();
+      user = await usersAPI.get(currentUser.username, token) || currentUser;
       isOwnProfile = true;
     }
 

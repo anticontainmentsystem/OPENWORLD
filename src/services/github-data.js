@@ -14,15 +14,22 @@ const API_BASE = 'https://api.github.com';
 /**
  * Read a JSON file from the data repo
  */
-export async function readData(path) {
+/**
+ * Read a JSON file from the data repo
+ */
+export async function readData(path, token = null) {
   try {
+    const headers = {
+      'Accept': 'application/vnd.github.v3+json'
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     const response = await fetch(
       `${API_BASE}/repos/${DATA_OWNER}/${DATA_REPO}/contents/${path}`,
-      {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      }
+      { headers }
     );
     
     if (!response.ok) {
@@ -38,7 +45,11 @@ export async function readData(path) {
     };
   } catch (error) {
     console.error('[GitHubData] Read error:', error);
-    return null;
+    // If it's a 404 (returned null above), we return null. 
+    // If it's another error (like 403 rate limit), we should probably re-throw 
+    // so we don't accidentally try to overwrite the file thinking it doesn't exist.
+    if (error.message.includes('404')) return null;
+    throw error;
   }
 }
 
@@ -88,13 +99,26 @@ export async function writeData(path, data, sha, token, message) {
  * Posts API
  */
 export const postsAPI = {
-  async getAll() {
-    const result = await readData('posts.json');
-    return result?.data || [];
+  async getAll(token = null) {
+    try {
+      const result = await readData('posts.json', token);
+      return result?.data || [];
+    } catch (error) {
+      console.error('Failed to load posts:', error);
+      return [];
+    }
   },
   
   async create(post, token) {
-    const result = await readData('posts.json');
+    // Pass token to readData to avoid 403 rate limits
+    let result;
+    try {
+      result = await readData('posts.json', token);
+    } catch (error) {
+      // If read failed (e.g. rate limit), we can't proceed safely
+      throw new Error(`Failed to read existing posts: ${error.message}`);
+    }
+    
     const posts = result?.data || [];
     const sha = result?.sha;
     
@@ -105,7 +129,7 @@ export const postsAPI = {
   },
   
   async delete(postId, username, token) {
-    const result = await readData('posts.json');
+    const result = await readData('posts.json', token);
     if (!result) return false;
     
     const posts = result.data.filter(p => p.id !== postId);
@@ -114,7 +138,7 @@ export const postsAPI = {
   },
   
   async react(postId, reactionType, token) {
-    const result = await readData('posts.json');
+    const result = await readData('posts.json', token);
     if (!result) return null;
     
     const post = result.data.find(p => p.id === postId);
@@ -130,21 +154,30 @@ export const postsAPI = {
  * Users API
  */
 export const usersAPI = {
-  async get(username) {
-    const result = await readData(`users/${username}.json`);
-    return result?.data || null;
+  async get(username, token = null) {
+    try {
+      const result = await readData(`users/${username}.json`, token);
+      return result?.data || null;
+    } catch (error) {
+      return null;
+    }
   },
   
   async save(user, token) {
-    const result = await readData(`users/${user.username}.json`);
-    await writeData(
-      `users/${user.username}.json`,
-      user,
-      result?.sha,
-      token,
-      `Update profile for @${user.username}`
-    );
-    return user;
+    try {
+      const result = await readData(`users/${user.username}.json`, token);
+      await writeData(
+        `users/${user.username}.json`,
+        user,
+        result?.sha,
+        token,
+        `Update profile for @${user.username}`
+      );
+      return user;
+    } catch (error) {
+      console.error('Failed to save user:', error);
+      throw error;
+    }
   },
   
   async getAll() {

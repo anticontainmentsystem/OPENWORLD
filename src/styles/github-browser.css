@@ -100,9 +100,14 @@
   border: none;
   color: var(--text-dim);
   cursor: pointer;
-  font-size: 1.2rem;
-  padding: 0 var(--sp-1);
+  font-size: 1rem;
+  padding: 0;
   line-height: 1;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .gh-browser__close:hover {
@@ -139,8 +144,8 @@
 /* Items */
 .gh-item {
   display: flex;
-  align-items: center;
-  gap: var(--sp-3);
+  flex-direction: column;
+  gap: var(--sp-1);
   padding: var(--sp-2) var(--sp-3);
   margin-bottom: 2px;
   border-radius: var(--radius);
@@ -152,8 +157,15 @@
   background: var(--border);
 }
 
+/* Repo name with icon inline */
+.gh-item__info {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
 .gh-item__icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: var(--text-dim);
 }
 
@@ -178,7 +190,6 @@
 .gh-item__desc {
   font-size: 0.75rem;
   color: var(--text-dim);
-  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -195,28 +206,30 @@
   opacity: 1;
 }
 
+/* Dark buttons with white text */
 .gh-btn {
   background: var(--bg);
   border: 1px solid var(--border);
-  color: var(--text-dim);
-  padding: 2px 8px;
+  color: var(--text);
+  padding: 4px 10px;
   font-size: 0.75rem;
   border-radius: var(--radius);
   cursor: pointer;
 }
 
 .gh-btn:hover {
-  border-color: var(--text-muted);
-  color: var(--text);
+  background: var(--surface);
+  border-color: var(--accent);
 }
 
 .gh-btn--primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: var(--bg);
+  color: #fff;
 }
 
 .gh-btn--primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
 }
+

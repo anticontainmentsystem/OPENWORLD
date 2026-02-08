@@ -196,7 +196,7 @@ function renderPostCard(post) {
     }
   }
   
-  const totalReactions = Object.values(post.reactions).reduce((a, b) => a + b, 0);
+  const totalReactions = Object.values(post.reactions || { fire: 0 }).reduce((a, b) => a + b, 0);
   const currentUser = auth.getUser();
   const isOwner = currentUser && post.userId === currentUser.id;
   

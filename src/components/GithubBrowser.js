@@ -84,19 +84,22 @@ export class GithubBrowser {
   renderRepoList() {
     if (this.userRepos.length === 0) return '<div class="gh-browser__empty">No repositories found.</div>';
     
-    return this.userRepos.map(repo => `
-      <div class="gh-item" data-repo-json='${JSON.stringify(repo).replace(/'/g, "&#39;")}'>
-        <div class="gh-item__icon">📦</div>
-        <div class="gh-item__details">
-          <div class="gh-item__name">${repo.name}</div>
+    return this.userRepos.map(repo => {
+      const ownerName = typeof repo.owner === 'string' ? repo.owner : repo.owner?.login || '';
+      return `
+        <div class="gh-item" data-repo-json='${JSON.stringify(repo).replace(/'/g, "&#39;")}'>
+          <div class="gh-item__info">
+            <span class="gh-item__icon">📦</span>
+            <span class="gh-item__name">${repo.name}</span>
+          </div>
           <div class="gh-item__desc">${repo.description ? repo.description.substring(0, 60) + '...' : ''}</div>
+          <div class="gh-item__actions">
+            <button class="gh-btn" data-action="browse">📂 Browse</button>
+            <button class="gh-btn gh-btn--primary" data-action="select">Attach</button>
+          </div>
         </div>
-        <div class="gh-item__actions">
-          <button class="gh-btn gh-btn--sm" data-action="browse">📂 Browse</button>
-          <button class="gh-btn gh-btn--sm gh-btn--primary" data-action="select">Attach</button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   async loadFiles() {
@@ -108,8 +111,18 @@ export class GithubBrowser {
       return;
     }
 
+    // Handle owner as string or object
+    const ownerName = typeof this.currentRepo.owner === 'string' 
+      ? this.currentRepo.owner 
+      : this.currentRepo.owner?.login || this.currentRepo.full_name?.split('/')[0];
+    
+    if (!ownerName) {
+      contentEl.innerHTML = '<div class="gh-browser__error">Unable to determine repository owner</div>';
+      return;
+    }
+
     const items = await reposAPI.getContents(
-      this.currentRepo.owner.login || this.currentRepo.owner, 
+      ownerName, 
       this.currentRepo.name, 
       this.currentPath, 
       token
@@ -153,8 +166,12 @@ export class GithubBrowser {
       return;
     }
 
+    const ownerName = typeof this.currentRepo.owner === 'string' 
+      ? this.currentRepo.owner 
+      : this.currentRepo.owner?.login || this.currentRepo.full_name?.split('/')[0];
+
     const forks = await reposAPI.getForks(
-      this.currentRepo.owner.login || this.currentRepo.owner, 
+      ownerName, 
       this.currentRepo.name, 
       token
     );

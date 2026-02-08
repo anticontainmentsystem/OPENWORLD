@@ -151,7 +151,7 @@ function renderPosts() {
   feedPosts.innerHTML = allPosts.map(post => renderPostCard(post)).join('');
 }
 
-import { renderPostCard } from './components/PostCard.js';
+
 
 // ... (renderPosts uses imported renderPostCard)
 

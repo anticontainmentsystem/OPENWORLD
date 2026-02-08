@@ -5,22 +5,29 @@
 
 import * as monaco from 'monaco-editor';
 
+// Import workers (Vite syntax)
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+
 // Configure Monaco workers
 self.MonacoEnvironment = {
   getWorker: function (workerId, label) {
     if (label === 'json') {
-      return new Worker(new URL('monaco-editor/esm/vs/language/json/json.worker', import.meta.url), { type: 'module' });
+      return new jsonWorker();
     }
     if (label === 'css' || label === 'scss' || label === 'less') {
-      return new Worker(new URL('monaco-editor/esm/vs/language/css/css.worker', import.meta.url), { type: 'module' });
+      return new cssWorker();
     }
     if (label === 'html' || label === 'handlebars' || label === 'razor') {
-      return new Worker(new URL('monaco-editor/esm/vs/language/html/html.worker', import.meta.url), { type: 'module' });
+      return new htmlWorker();
     }
     if (label === 'typescript' || label === 'javascript') {
-      return new Worker(new URL('monaco-editor/esm/vs/language/typescript/ts.worker', import.meta.url), { type: 'module' });
+      return new tsWorker();
     }
-    return new Worker(new URL('monaco-editor/esm/vs/editor/editor.worker', import.meta.url), { type: 'module' });
+    return new editorWorker();
   }
 };
 

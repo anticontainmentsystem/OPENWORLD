@@ -31,6 +31,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAuth();
   await loadAndRenderPosts();
   setupEventListeners();
+  
+  // Start real-time updates (polling every 4s)
+  posts.startPolling(4000);
 });
 
 async function loadAndRenderPosts() {

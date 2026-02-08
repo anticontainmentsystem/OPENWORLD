@@ -234,6 +234,113 @@ class PostsService {
     }
     return false;
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // REAL-TIME UPDATES (POLLING)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  startPolling(interval = 4000) {
+    if (this.pollInterval) return;
+    // console.log('[Posts] Started polling...');
+    this.pollInterval = setInterval(async () => {
+      try {
+        const token = auth.getAccessToken();
+        // Silent fetch (no loading indicators)
+        const latestPosts = await postsAPI.getAll(token);
+        this.reconcilePosts(latestPosts);
+      } catch (e) {
+        console.error('[Posts] Polling error (silent):', e);
+      }
+    }, interval);
+  }
+
+  stopPolling() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+  }
+
+  reconcilePosts(remotePosts) {
+    if (!remotePosts || !Array.isArray(remotePosts)) return;
+
+    remotePosts.forEach(remotePost => {
+      const localPost = this.posts.find(p => p.id === remotePost.id);
+      
+      if (localPost) {
+        // 1. Check Reactions
+        // We only care if the counts changed. The "hasReacted" state for the *current* user 
+        // is technically derived from the "reactedBy" array if we had it.
+        // But for now, we just sync the counts for everyone.
+        
+        const localReactions = localPost.reactions || { fire: 0, heart: 0, rocket: 0 };
+        const remoteReactions = remotePost.reactions || { fire: 0, heart: 0, rocket: 0 };
+        
+        // Simple JSON comparison for efficiency
+        if (JSON.stringify(localReactions) !== JSON.stringify(remoteReactions)) {
+          // console.log('[Posts] Syncing reactions for:', remotePost.id);
+          localPost.reactions = remoteReactions;
+          this.updateReactionUI(remotePost.id, remoteReactions);
+        }
+        
+        // 2. Check Comments Count
+        const localComments = Array.isArray(localPost.comments) ? localPost.comments.length : (localPost.comments || 0);
+        const remoteComments = Array.isArray(remotePost.comments) ? remotePost.comments.length : (remotePost.comments || 0);
+        
+        if (localComments !== remoteComments) {
+           localPost.comments = remotePost.comments;
+           this.updateCommentCountUI(remotePost.id, remoteComments);
+        }
+
+      } else {
+        // New Post Found - user might want to see it?
+        // For now, let's NOT automatically inject new posts to avoid layout shifts.
+        // We could show a "New posts available" toaster in the future.
+        if (!this.posts.some(p => p.id === remotePost.id)) {
+             // Add to local data but don't render yet
+             this.posts.unshift(remotePost); 
+        }
+      }
+    });
+  }
+
+  updateReactionUI(postId, reactions) {
+    // Find the post card in the DOM
+    const postCard = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+    if (!postCard) return;
+
+    // Helper to safe update
+    const updateCount = (type, count) => {
+      // Find button by looking for the emoji text context or data-action
+      // Implementation depends on how renderPostCard outputs HTML.
+      // Based on renderPostCard: 
+      // <button class="post-card__action" data-action="react" ...>🔥 <span>0</span></button>
+      // Wait, renderPostCard currently assumes only 'fire' or generic 'react'.
+      // But let's support fire specifically for now as it's the main one requested.
+      
+      const btn = postCard.querySelector(`.post-card__action[data-action="react"]`);
+      if (btn) {
+         const span = btn.querySelector('span');
+         // Sum of all reactions or just fire? 
+         // The user specifically mentioned "fire icon... displays 14 or 15".
+         // Currently renderPostCard sums ALL reactions: Object.values(...).reduce...
+         
+         const total = Object.values(reactions).reduce((a, b) => a + b, 0);
+         if (span) span.textContent = total;
+      }
+    };
+
+    updateCount('fire', reactions.fire || 0);
+  }
+  
+  updateCommentCountUI(postId, count) {
+      const postCard = document.querySelector(`.post-card[data-post-id="${postId}"]`);
+      if (!postCard) return;
+      
+      const btn = postCard.querySelector(`.post-card__action[data-action="comment"] span`);
+      if (btn) btn.textContent = count;
+  }
+
 }
 
 export const posts = new PostsService();

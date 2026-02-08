@@ -369,3 +369,60 @@
   margin-left: auto;
   margin-right: auto;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   POST MEDIA STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.post-card__media {
+  margin: var(--sp-2) 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.post-card__media img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  cursor: pointer;
+  transition: max-height 0.3s ease;
+}
+
+.post-card__media img.expanded {
+  max-height: none;
+}
+
+.post-card__media--video video {
+  width: 100%;
+  max-height: 400px;
+  background: #000;
+}
+
+/* Profile links in posts */
+.post-card__avatar-link {
+  display: block;
+  flex-shrink: 0;
+}
+
+.post-card__name,
+.post-card__username {
+  text-decoration: none;
+}
+
+.post-card__name {
+  color: var(--text);
+}
+
+.post-card__name:hover {
+  color: var(--accent);
+}
+
+.post-card__username {
+  color: var(--text-dim);
+}
+
+.post-card__username:hover {
+  color: var(--accent);
+}
+

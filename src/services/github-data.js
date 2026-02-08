@@ -221,6 +221,34 @@ export const postsAPI = {
 };
 
 /**
+ * Comments API
+ */
+export const commentsAPI = {
+  async add(postId, content, attachments, token) {
+    try {
+      const response = await fetch('/.netlify/functions/add-comment', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ postId, content, attachments })
+      });
+      
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to add comment');
+      }
+      
+      return result.comment;
+    } catch (error) {
+      console.error('[CommentsAPI] Add error:', error);
+      throw error;
+    }
+  }
+};
+
+/**
  * Repositories API (New)
  */
 export const reposAPI = {

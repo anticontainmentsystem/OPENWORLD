@@ -504,10 +504,12 @@ function renderUserPosts(userIdOrName) {
   postsContainer.innerHTML = userPosts.map(post => `
     <div class="post-card">
       <div class="post-card__header">
-        <img src="${post.userAvatar || 'https://github.com/identicons/'+post.username+'.png'}" class="post-card__avatar" alt="${post.username}">
+        <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__avatar-link">
+          <img src="${post.userAvatar || 'https://github.com/identicons/'+post.username+'.png'}" class="post-card__avatar" alt="${post.username}">
+        </a>
         <div class="post-card__meta">
-          <span class="post-card__name">${escapeHtml(post.userName || post.username)}</span>
-          <span class="post-card__username">@${escapeHtml(post.username)}</span>
+          <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__name">${escapeHtml(post.userName || post.username)}</a>
+          <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__username">@${escapeHtml(post.username)}</a>
           <span class="post-card__time">${formatRelativeTime(post.createdAt)}</span>
         </div>
       </div>
@@ -527,7 +529,7 @@ function renderUserPosts(userIdOrName) {
         </a>
       ` : ''}
       <div class="post-card__actions">
-         <span class="text-dim">❤️ ${post.reactions?.fire || 0}</span>
+         <span class="text-dim">🔥 ${post.reactions?.fire || 0}</span>
       </div>
     </div>
   `).join('');

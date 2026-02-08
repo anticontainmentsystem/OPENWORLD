@@ -5,6 +5,13 @@
 
 import { auth, posts, fetchUserRepos, formatRelativeTime } from './services/auth.js';
 import { CodeEditor, LANGUAGES, createCodeBlock } from './components/code-editor.js';
+import { CommentThread } from './components/CommentThread.js';
+
+// Add comment styles
+const commentStyles = document.createElement('link');
+commentStyles.rel = 'stylesheet';
+commentStyles.href = '/src/styles/comment.css';
+document.head.appendChild(commentStyles);
 
 // DOM Elements
 const userBadge = document.getElementById('userBadge');
@@ -163,18 +170,47 @@ function renderPostCard(post) {
     </div>
   ` : '';
   
+  // Media rendering (image/video/gif)
+  let mediaHtml = '';
+  if (post.media && post.media.url) {
+    const mediaUrl = post.media.url.startsWith('github://') 
+      ? convertGitHubUrl(post.media.url)
+      : post.media.url;
+    
+    if (post.media.type === 'video') {
+      mediaHtml = `
+        <div class="post-card__media post-card__media--video">
+          <video controls preload="metadata" playsinline>
+            <source src="${escapeHtml(mediaUrl)}" type="video/mp4">
+            Your browser does not support video playback.
+          </video>
+        </div>
+      `;
+    } else {
+      // image or gif
+      mediaHtml = `
+        <div class="post-card__media">
+          <img src="${escapeHtml(mediaUrl)}" alt="Post media" loading="lazy" onclick="this.classList.toggle('expanded')">
+        </div>
+      `;
+    }
+  }
+  
   const totalReactions = Object.values(post.reactions).reduce((a, b) => a + b, 0);
   const currentUser = auth.getUser();
   const isOwner = currentUser && post.userId === currentUser.id;
   
+  // Modular structure: Text → Media → Attachments (code, repo)
   return `
     <article class="post-card" data-post-id="${post.id}">
       <header class="post-card__header">
-        <img src="${post.userAvatar}" alt="${post.userName}" class="post-card__avatar" data-username="${post.username}">
+        <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__avatar-link">
+          <img src="${post.userAvatar}" alt="${post.userName}" class="post-card__avatar">
+        </a>
         <div class="post-card__meta">
           <div class="post-card__author">
-            <span class="post-card__name" data-username="${post.username}">${post.userName}</span>
-            <span class="post-card__username">@${post.username}</span>
+            <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__name">${post.userName}</a>
+            <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__username">@${post.username}</a>
           </div>
           <div class="post-card__time">${formatRelativeTime(post.createdAt)}</div>
         </div>
@@ -182,6 +218,8 @@ function renderPostCard(post) {
       </header>
       
       ${post.content ? `<div class="post-card__content">${escapeHtml(post.content)}</div>` : ''}
+      
+      ${mediaHtml}
       
       ${codeHtml}
       
@@ -191,11 +229,12 @@ function renderPostCard(post) {
         <button class="post-card__action" data-action="react" data-post-id="${post.id}">
           🔥 <span>${totalReactions}</span>
         </button>
-        <button class="post-card__action" data-action="comment">
-          💬 <span>${post.comments}</span>
+        <button class="post-card__action" data-action="comment" data-post-id="${post.id}">
+          💬 <span>${Array.isArray(post.comments) ? post.comments.length : 0}</span>
         </button>
         ${isOwner ? `<button class="post-card__action" data-action="delete" data-post-id="${post.id}">🗑️</button>` : ''}
       </footer>
+      <div class="post-card__comments" id="comments-${post.id}" style="display: none;"></div>
     </article>
   `;
 }
@@ -204,6 +243,21 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+/**
+ * Convert github:// URL to raw GitHub content URL
+ * Format: github://owner/repo/path/to/file.ext
+ */
+function convertGitHubUrl(githubUrl) {
+  if (!githubUrl.startsWith('github://')) return githubUrl;
+  const path = githubUrl.replace('github://', '');
+  const parts = path.split('/');
+  if (parts.length < 3) return githubUrl;
+  const owner = parts[0];
+  const repo = parts[1];
+  const filePath = parts.slice(2).join('/');
+  return `https://raw.githubusercontent.com/${owner}/${repo}/main/${filePath}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -492,10 +546,29 @@ function handlePostActions(e) {
     }
   }
   
-  // Profile navigation
-  const userElement = e.target.closest('[data-username]');
-  if (userElement && !action) {
-    window.location.href = `/pillars/community/profile.html?user=${userElement.dataset.username}`;
+  // Comment toggle
+  if (actionType === 'comment' && postId) {
+    const container = document.getElementById(`comments-${postId}`);
+    if (!container) return;
+    
+    const isVisible = container.style.display !== 'none';
+    container.style.display = isVisible ? 'none' : 'block';
+    
+    // Initialize CommentThread if not already
+    if (!isVisible && !container.dataset.initialized) {
+      const post = posts.getPosts().find(p => p.id === postId);
+      if (post) {
+        new CommentThread(container, post, {
+          onCommentAdded: (newComment) => {
+            // Update the button count
+            const btn = document.querySelector(`[data-action="comment"][data-post-id="${postId}"] span`);
+            const currentCount = parseInt(btn.textContent) || 0;
+            btn.textContent = currentCount + 1;
+          }
+        });
+        container.dataset.initialized = 'true';
+      }
+    }
   }
 }
 

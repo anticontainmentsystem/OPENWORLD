@@ -1,4 +1,9 @@
-// ... imports ...
+/**
+ * Notification Dropdown Component
+ * Renders inline notification list in user menu
+ */
+import { notificationService } from '../services/notification.js';
+import { formatRelativeTime } from '../services/auth.js';
 
 export class NotificationDropdown {
   constructor(container) {

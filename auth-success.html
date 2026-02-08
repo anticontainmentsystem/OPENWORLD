@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signing in... — OpenWorld</title>
+  <link rel="stylesheet" href="/src/styles/core.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    .auth-status {
+      padding: var(--sp-4);
+    }
+    .auth-status__icon {
+      font-size: 2rem;
+      margin-bottom: var(--sp-2);
+    }
+    .auth-status__text {
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-status">
+    <div class="auth-status__icon">◈</div>
+    <h1>Signing in...</h1>
+    <p class="auth-status__text">Completing GitHub authentication</p>
+  </div>
+  
+  <script type="module">
+    // Extract user data from URL
+    const params = new URLSearchParams(window.location.search);
+    const userData = params.get('user');
+    
+    if (userData) {
+      try {
+        const user = JSON.parse(decodeURIComponent(userData));
+        
+        // Store user in localStorage
+        localStorage.setItem('openworld_user', JSON.stringify(user));
+        
+        // Redirect to community
+        window.location.href = '/pillars/community/';
+      } catch (e) {
+        console.error('Failed to parse user data:', e);
+        window.location.href = '/auth-error.html?error=Failed+to+parse+user+data';
+      }
+    } else {
+      window.location.href = '/auth-error.html?error=No+user+data+received';
+    }
+  </script>
+</body>
+</html>

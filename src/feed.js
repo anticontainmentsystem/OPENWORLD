@@ -1,10 +1,9 @@
 /**
- * OpenWorld Feed Logic
- * Handles post rendering, user interactions, and auth state
+ * OpenWorld Feed
+ * Real post creation with GitHub repo attachment
  */
 
-import { auth } from './services/auth.js';
-import { mockUsers, mockPosts, getUserById, formatRelativeTime } from './data/mock-data.js';
+import { auth, posts, fetchUserRepos, formatRelativeTime } from './services/auth.js';
 
 // DOM Elements
 const userBadge = document.getElementById('userBadge');
@@ -14,11 +13,13 @@ const feedPosts = document.getElementById('feedPosts');
 const suggestions = document.getElementById('suggestions');
 const userStats = document.getElementById('userStats');
 
+let userRepos = [];
+let selectedRepo = null;
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   initAuth();
   renderPosts();
-  renderSuggestions();
   setupEventListeners();
 });
 
@@ -27,29 +28,33 @@ document.addEventListener('DOMContentLoaded', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function initAuth() {
-  // Subscribe to auth changes
   auth.subscribe(updateAuthUI);
-  // Initial render
   updateAuthUI(auth.getUser());
 }
 
-function updateAuthUI(user) {
+async function updateAuthUI(user) {
   if (user) {
-    // Logged in state
     renderUserBadge(user);
     composer.style.display = 'block';
     loginPrompt.style.display = 'none';
     userStats.style.display = 'block';
     
-    // Update composer avatar
     document.getElementById('composerAvatar').src = user.avatar;
-    document.getElementById('statFollowing').textContent = user.following;
+    document.getElementById('statFollowing').textContent = user.following || 0;
+    document.getElementById('statPosts').textContent = posts.getPostsByUser(user.id).length;
+    
+    // Load repos for picker
+    userRepos = await fetchUserRepos();
+    if (userRepos.length === 0 && user.repos) {
+      userRepos = user.repos;
+    }
+    renderSuggestions(user);
   } else {
-    // Logged out state
     renderLoginButton();
     composer.style.display = 'none';
     loginPrompt.style.display = 'block';
     userStats.style.display = 'none';
+    renderSuggestions(null);
   }
 }
 
@@ -58,7 +63,6 @@ function renderUserBadge(user) {
     <button class="user-badge__trigger" id="userBadgeTrigger">
       <img src="${user.avatar}" alt="${user.name}" class="user-badge__avatar">
       <span class="user-badge__name">${user.username}</span>
-      <span class="user-badge__chevron">▼</span>
     </button>
     <div class="user-badge__dropdown">
       <div class="user-badge__dropdown-header">
@@ -66,30 +70,21 @@ function renderUserBadge(user) {
         <div class="user-badge__dropdown-username">@${user.username}</div>
       </div>
       <ul class="user-badge__dropdown-menu">
-        <li><a href="/pillars/community/profile.html" class="user-badge__dropdown-item">👤 Your Profile</a></li>
-        <li><a href="/pillars/community/settings.html" class="user-badge__dropdown-item">⚙️ Settings</a></li>
+        <li><a href="/pillars/community/profile.html" class="user-badge__dropdown-item">👤 Profile</a></li>
+        <li><a href="/pillars/community/profile.html?edit=1" class="user-badge__dropdown-item">✏️ Edit Profile</a></li>
         <li class="user-badge__dropdown-divider"></li>
-        <li><button class="user-badge__dropdown-item user-badge__dropdown-item--danger" id="logoutBtn">🚪 Sign Out</button></li>
+        <li><button class="user-badge__dropdown-item" id="logoutBtn">Sign Out</button></li>
       </ul>
     </div>
   `;
   
-  // Toggle dropdown
-  const trigger = document.getElementById('userBadgeTrigger');
-  trigger.addEventListener('click', (e) => {
+  document.getElementById('userBadgeTrigger').addEventListener('click', (e) => {
     e.stopPropagation();
     userBadge.classList.toggle('user-badge--open');
   });
   
-  // Close on outside click
-  document.addEventListener('click', () => {
-    userBadge.classList.remove('user-badge--open');
-  });
-  
-  // Logout handler
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    auth.logout();
-  });
+  document.addEventListener('click', () => userBadge.classList.remove('user-badge--open'));
+  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
 }
 
 function renderLoginButton() {
@@ -102,17 +97,7 @@ function renderLoginButton() {
     </button>
   `;
   
-  document.getElementById('navLoginBtn').addEventListener('click', handleLogin);
-}
-
-async function handleLogin() {
-  const btn = document.querySelector('.user-badge__login') || document.getElementById('loginPromptBtn');
-  if (btn) {
-    btn.textContent = 'Signing in...';
-    btn.disabled = true;
-  }
-  
-  await auth.login();
+  document.getElementById('navLoginBtn').addEventListener('click', () => auth.login());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -120,16 +105,26 @@ async function handleLogin() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function renderPosts() {
-  feedPosts.innerHTML = mockPosts.map(post => renderPostCard(post)).join('');
+  const allPosts = posts.getPosts();
+  
+  if (allPosts.length === 0) {
+    feedPosts.innerHTML = `
+      <div class="card" style="text-align: center; padding: var(--sp-5);">
+        <div style="font-size: 2rem; margin-bottom: var(--sp-2);">🌐</div>
+        <h3 style="margin-bottom: var(--sp-1);">No posts yet</h3>
+        <p class="text-dim">Be the first to share what you're building.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  feedPosts.innerHTML = allPosts.map(post => renderPostCard(post)).join('');
 }
 
 function renderPostCard(post) {
-  const user = getUserById(post.userId);
-  if (!user) return '';
-  
   const typeLabels = {
     release: '🚀 Release',
-    experiment: '🧪 Experiment', 
+    experiment: '🧪 Experiment',
     tutorial: '📚 Tutorial',
     commit: '💻 Commit',
     milestone: '🎯 Milestone',
@@ -139,66 +134,228 @@ function renderPostCard(post) {
   
   const repoHtml = post.repo ? `
     <a href="${post.repo.url}" target="_blank" rel="noopener" class="post-card__repo">
-      <span class="post-card__repo-icon">📦</span>
-      ${post.repo.name}
+      📦 ${post.repo.name}
     </a>
   ` : '';
   
   const totalReactions = Object.values(post.reactions).reduce((a, b) => a + b, 0);
+  const currentUser = auth.getUser();
+  const isOwner = currentUser && post.userId === currentUser.id;
   
   return `
     <article class="post-card" data-post-id="${post.id}">
       <header class="post-card__header">
-        <img src="${user.avatar}" alt="${user.name}" class="post-card__avatar" data-user-id="${user.id}">
+        <img src="${post.userAvatar}" alt="${post.userName}" class="post-card__avatar" data-username="${post.username}">
         <div class="post-card__meta">
           <div class="post-card__author">
-            <span class="post-card__name" data-user-id="${user.id}">${user.name}</span>
-            <span class="post-card__username">@${user.username}</span>
+            <span class="post-card__name" data-username="${post.username}">${post.userName}</span>
+            <span class="post-card__username">@${post.username}</span>
           </div>
           <div class="post-card__time">${formatRelativeTime(post.createdAt)}</div>
         </div>
         ${post.type ? `<span class="post-card__type post-card__type--${post.type}">${typeLabels[post.type] || post.type}</span>` : ''}
       </header>
       
-      <div class="post-card__content">${post.content}</div>
+      <div class="post-card__content">${escapeHtml(post.content)}</div>
       
       ${repoHtml}
       
       <footer class="post-card__actions">
-        <button class="post-card__action" data-action="react">
+        <button class="post-card__action" data-action="react" data-post-id="${post.id}">
           🔥 <span>${totalReactions}</span>
         </button>
         <button class="post-card__action" data-action="comment">
           💬 <span>${post.comments}</span>
         </button>
-        <button class="post-card__action" data-action="share">
-          🔗 Share
-        </button>
-        <button class="post-card__action" data-action="bookmark">
-          🔖 Save
-        </button>
+        ${isOwner ? `<button class="post-card__action" data-action="delete" data-post-id="${post.id}">🗑️</button>` : ''}
       </footer>
     </article>
   `;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SUGGESTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
-function renderSuggestions() {
-  const suggestedUsers = mockUsers.slice(0, 4);
+function renderSuggestions(currentUser) {
+  if (!currentUser) {
+    suggestions.innerHTML = `
+      <p class="text-dim" style="font-size: 0.85rem;">Sign in to see suggestions</p>
+    `;
+    return;
+  }
   
-  suggestions.innerHTML = suggestedUsers.map(user => `
-    <div class="suggestion-item">
-      <img src="${user.avatar}" alt="${user.name}" class="suggestion-item__avatar">
-      <div class="suggestion-item__info">
-        <div class="suggestion-item__name">${user.name}</div>
-        <div class="suggestion-item__username">@${user.username}</div>
-      </div>
-      <button class="ow-btn suggestion-item__follow" data-user-id="${user.id}">Follow</button>
+  suggestions.innerHTML = `
+    <p class="text-dim" style="font-size: 0.85rem;">You're the first creator here! 🎉</p>
+    <p class="text-dim" style="font-size: 0.8rem; margin-top: var(--sp-2);">Share a post to get started.</p>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REPO PICKER
+// ═══════════════════════════════════════════════════════════════════════════
+
+function showRepoPicker() {
+  const existingPicker = document.getElementById('repoPicker');
+  if (existingPicker) {
+    existingPicker.remove();
+    return;
+  }
+  
+  if (userRepos.length === 0) {
+    alert('No repositories found. Make sure you have public repos on GitHub.');
+    return;
+  }
+  
+  const picker = document.createElement('div');
+  picker.id = 'repoPicker';
+  picker.className = 'repo-picker';
+  picker.innerHTML = `
+    <div class="repo-picker__header">
+      <span>Select Repository</span>
+      <button class="repo-picker__close" id="closeRepoPicker">×</button>
     </div>
-  `).join('');
+    <div class="repo-picker__list">
+      ${userRepos.map(repo => `
+        <button class="repo-picker__item" data-repo='${JSON.stringify(repo)}'>
+          <span class="repo-picker__name">📦 ${repo.name}</span>
+          ${repo.description ? `<span class="repo-picker__desc">${repo.description.substring(0, 50)}</span>` : ''}
+        </button>
+      `).join('')}
+    </div>
+  `;
+  
+  // Add styles if not present
+  if (!document.getElementById('repoPickerStyles')) {
+    const style = document.createElement('style');
+    style.id = 'repoPickerStyles';
+    style.textContent = `
+      .repo-picker {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-top: var(--sp-1);
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 100;
+      }
+      .repo-picker__header {
+        display: flex;
+        justify-content: space-between;
+        padding: var(--sp-2);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+      .repo-picker__close {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .repo-picker__list {
+        padding: var(--sp-1);
+      }
+      .repo-picker__item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: var(--sp-2);
+        background: none;
+        border: none;
+        border-radius: var(--radius);
+        cursor: pointer;
+        font-family: var(--font);
+      }
+      .repo-picker__item:hover {
+        background: var(--border);
+      }
+      .repo-picker__name {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--copper-500);
+        font-family: var(--font-mono);
+      }
+      .repo-picker__desc {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+      .selected-repo {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-1);
+        padding: var(--sp-1) var(--sp-2);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.8rem;
+        color: var(--copper-500);
+        font-family: var(--font-mono);
+      }
+      .selected-repo__remove {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0 2px;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  composer.style.position = 'relative';
+  composer.appendChild(picker);
+  
+  // Event listeners
+  document.getElementById('closeRepoPicker').addEventListener('click', () => picker.remove());
+  
+  picker.querySelectorAll('.repo-picker__item').forEach(item => {
+    item.addEventListener('click', () => {
+      selectedRepo = JSON.parse(item.dataset.repo);
+      picker.remove();
+      updateSelectedRepo();
+    });
+  });
+}
+
+function updateSelectedRepo() {
+  let container = document.getElementById('selectedRepoContainer');
+  
+  if (selectedRepo) {
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'selectedRepoContainer';
+      container.style.marginTop = 'var(--sp-2)';
+      composer.querySelector('.composer__header').after(container);
+    }
+    
+    container.innerHTML = `
+      <div class="selected-repo">
+        📦 ${selectedRepo.name}
+        <button class="selected-repo__remove" id="removeSelectedRepo">×</button>
+      </div>
+    `;
+    
+    document.getElementById('removeSelectedRepo').addEventListener('click', () => {
+      selectedRepo = null;
+      container.remove();
+    });
+  } else if (container) {
+    container.remove();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -207,16 +364,13 @@ function renderSuggestions() {
 
 function setupEventListeners() {
   // Login prompt button
-  const loginPromptBtn = document.getElementById('loginPromptBtn');
-  if (loginPromptBtn) {
-    loginPromptBtn.addEventListener('click', handleLogin);
-  }
+  document.getElementById('loginPromptBtn')?.addEventListener('click', () => auth.login());
   
   // Post button
-  const postBtn = document.getElementById('postBtn');
-  if (postBtn) {
-    postBtn.addEventListener('click', handlePost);
-  }
+  document.getElementById('postBtn')?.addEventListener('click', handlePost);
+  
+  // Repo picker
+  document.querySelector('.composer__tool')?.addEventListener('click', showRepoPicker);
   
   // Tab switching
   document.querySelectorAll('.feed-tab').forEach(tab => {
@@ -226,54 +380,45 @@ function setupEventListeners() {
     });
   });
   
-  // Follow buttons
-  suggestions.addEventListener('click', (e) => {
-    if (e.target.classList.contains('suggestion-item__follow')) {
-      const btn = e.target;
-      if (btn.textContent === 'Follow') {
-        btn.textContent = 'Following';
-        btn.style.background = 'var(--ow-elevated)';
-        btn.style.borderColor = 'var(--ow-text-muted)';
-        btn.style.color = 'var(--ow-text-secondary)';
-      } else {
-        btn.textContent = 'Follow';
-        btn.style.background = '';
-        btn.style.borderColor = '';
-        btn.style.color = '';
-      }
-    }
-  });
-  
-  // Post action buttons
-  feedPosts.addEventListener('click', (e) => {
-    const action = e.target.closest('.post-card__action');
-    if (action) {
-      const actionType = action.dataset.action;
-      if (actionType === 'react') {
-        action.classList.toggle('post-card__action--active');
-        const countEl = action.querySelector('span');
-        const count = parseInt(countEl.textContent);
-        countEl.textContent = action.classList.contains('post-card__action--active') ? count + 1 : count - 1;
-      }
-    }
-    
-    // User profile click
-    const userElement = e.target.closest('[data-user-id]');
-    if (userElement && userElement.dataset.userId) {
-      window.location.href = `/pillars/community/profile.html?id=${userElement.dataset.userId}`;
-    }
-  });
+  // Post actions (delegate)
+  feedPosts.addEventListener('click', handlePostActions);
   
   // Load more
-  const loadMoreBtn = document.getElementById('loadMoreBtn');
-  if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', () => {
-      loadMoreBtn.textContent = 'Loading...';
-      setTimeout(() => {
-        loadMoreBtn.textContent = 'No more posts';
-        loadMoreBtn.disabled = true;
-      }, 1000);
-    });
+  document.getElementById('loadMoreBtn')?.addEventListener('click', (btn) => {
+    btn.target.textContent = 'No more posts';
+    btn.target.disabled = true;
+  });
+}
+
+function handlePostActions(e) {
+  const action = e.target.closest('.post-card__action');
+  if (!action) return;
+  
+  const actionType = action.dataset.action;
+  const postId = action.dataset.postId;
+  
+  if (actionType === 'react' && postId) {
+    const updatedPost = posts.reactToPost(postId, 'fire');
+    if (updatedPost) {
+      const countEl = action.querySelector('span');
+      const total = Object.values(updatedPost.reactions).reduce((a, b) => a + b, 0);
+      countEl.textContent = total;
+      action.classList.add('post-card__action--active');
+    }
+  }
+  
+  if (actionType === 'delete' && postId) {
+    if (confirm('Delete this post?')) {
+      posts.deletePost(postId);
+      renderPosts();
+      updatePostCount();
+    }
+  }
+  
+  // Profile navigation
+  const userElement = e.target.closest('[data-username]');
+  if (userElement && !action) {
+    window.location.href = `/pillars/community/profile.html?user=${userElement.dataset.username}`;
   }
 }
 
@@ -281,44 +426,44 @@ function handlePost() {
   const input = document.getElementById('composerInput');
   const content = input.value.trim();
   
-  if (!content) return;
+  if (!content) {
+    input.focus();
+    return;
+  }
   
+  try {
+    const newPost = posts.createPost({
+      content,
+      type: selectedRepo ? 'release' : 'thought',
+      repo: selectedRepo
+    });
+    
+    // Add to top of feed
+    feedPosts.insertAdjacentHTML('afterbegin', renderPostCard(newPost));
+    
+    // Remove "no posts" message if present
+    const emptyState = feedPosts.querySelector('.card');
+    if (emptyState && emptyState.textContent.includes('No posts yet')) {
+      emptyState.remove();
+    }
+    
+    // Clear input
+    input.value = '';
+    selectedRepo = null;
+    document.getElementById('selectedRepoContainer')?.remove();
+    
+    updatePostCount();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function updatePostCount() {
   const user = auth.getUser();
-  if (!user) return;
-  
-  // Create new post
-  const newPost = {
-    id: 'post_' + Date.now(),
-    userId: user.id,
-    content: content,
-    type: 'thought',
-    reactions: { fire: 0, heart: 0 },
-    comments: 0,
-    createdAt: new Date().toISOString()
-  };
-  
-  // Add user to mock data temporarily
-  mockUsers.push(user);
-  mockPosts.unshift(newPost);
-  
-  // Re-render
-  feedPosts.innerHTML = renderPostCard(newPost) + feedPosts.innerHTML;
-  
-  // Clear input
-  input.value = '';
-  
-  // Update stats
-  const statPosts = document.getElementById('statPosts');
-  statPosts.textContent = parseInt(statPosts.textContent) + 1;
+  if (user) {
+    document.getElementById('statPosts').textContent = posts.getPostsByUser(user.id).length;
+  }
 }
 
 // Console signature
-console.log(`
-%c◈ OpenWorld Community
-%cLive creation feed
-
-Build in public. Share your journey.
-`, 
-'color: #4d96ff; font-size: 20px; font-weight: bold;',
-'color: #a0a0b5; font-size: 12px;'
-);
+console.log('%c◈ OpenWorld Community', 'color: #b87333; font-size: 16px; font-weight: bold;');

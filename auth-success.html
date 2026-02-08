@@ -15,6 +15,7 @@
     }
     .auth-status {
       padding: var(--sp-4);
+      max-width: 400px;
     }
     .auth-status__icon {
       font-size: 2rem;
@@ -23,36 +24,84 @@
     .auth-status__text {
       color: var(--text-dim);
     }
+    .auth-status__debug {
+      margin-top: var(--sp-3);
+      padding: var(--sp-2);
+      background: var(--surface);
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-align: left;
+      word-break: break-all;
+      max-height: 200px;
+      overflow: auto;
+    }
   </style>
 </head>
 <body>
   <div class="auth-status">
     <div class="auth-status__icon">◈</div>
-    <h1>Signing in...</h1>
-    <p class="auth-status__text">Completing GitHub authentication</p>
+    <h1 id="title">Signing in...</h1>
+    <p class="auth-status__text" id="message">Completing GitHub authentication</p>
+    <div class="auth-status__debug" id="debug" style="display: none;"></div>
   </div>
   
-  <script type="module">
-    // Extract user data from URL
-    const params = new URLSearchParams(window.location.search);
-    const userData = params.get('user');
-    
-    if (userData) {
+  <script>
+    (function() {
+      const title = document.getElementById('title');
+      const message = document.getElementById('message');
+      const debug = document.getElementById('debug');
+      
+      function showDebug(text) {
+        debug.style.display = 'block';
+        debug.textContent = text;
+      }
+      
       try {
+        const params = new URLSearchParams(window.location.search);
+        const userData = params.get('user');
+        
+        if (!userData) {
+          title.textContent = 'Error';
+          message.textContent = 'No user data received from callback';
+          showDebug('URL: ' + window.location.href);
+          return;
+        }
+        
         const user = JSON.parse(decodeURIComponent(userData));
+        
+        if (!user || !user.username) {
+          title.textContent = 'Error';
+          message.textContent = 'Invalid user data structure';
+          showDebug(JSON.stringify(user, null, 2));
+          return;
+        }
         
         // Store user in localStorage
         localStorage.setItem('openworld_user', JSON.stringify(user));
         
-        // Redirect to community
-        window.location.href = '/pillars/community/';
+        // Verify it was stored
+        const stored = localStorage.getItem('openworld_user');
+        if (!stored) {
+          title.textContent = 'Error';
+          message.textContent = 'Failed to save to localStorage';
+          return;
+        }
+        
+        title.textContent = 'Welcome, ' + user.name + '!';
+        message.textContent = 'Redirecting to community...';
+        
+        // Redirect after short delay so user sees success
+        setTimeout(function() {
+          window.location.href = '/pillars/community/';
+        }, 500);
+        
       } catch (e) {
-        console.error('Failed to parse user data:', e);
-        window.location.href = '/auth-error.html?error=Failed+to+parse+user+data';
+        title.textContent = 'Error';
+        message.textContent = 'Failed to process authentication: ' + e.message;
+        showDebug('Error: ' + e.toString() + '\n\nURL: ' + window.location.href);
       }
-    } else {
-      window.location.href = '/auth-error.html?error=No+user+data+received';
-    }
+    })();
   </script>
 </body>
 </html>

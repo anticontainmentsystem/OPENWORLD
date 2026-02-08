@@ -68,7 +68,21 @@ export async function readData(path) {
       return { data: [], sha: file.sha };
     }
   } catch (error) {
-    console.error(`[System] Read error for ${path}:`, error);
+    console.error(`[System] Read error for ${path} (Target: ${DATA_OWNER}/${DATA_REPO}):`, error);
+    
+    // Debug: Check if PAT is valid for *anything*
+    if (error.message.includes('401')) {
+       try {
+         const verify = await fetch('https://api.github.com/user', {
+           headers: { 'Authorization': `Bearer ${GITHUB_PAT}` }
+         });
+         const whoami = await verify.json();
+         console.error('[System] PAT Verification Check:', verify.status, verify.status === 200 ? `Logged in as ${whoami.login}` : whoami.message);
+       } catch (e) {
+         console.error('[System] PAT Verification Failed completely:', e);
+       }
+    }
+
     if (error.message.includes('404')) return null;
     throw error;
   }

@@ -2,9 +2,9 @@
  * Update Profile (Backend Proxy)
  * Securely update user profile
  */
-const { readData, writeData } = require('./utils/gh');
+import { readData, writeData } from './utils/gh.js';
 
-exports.handler = async function(event, context) {
+export async function handler(event, context) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }

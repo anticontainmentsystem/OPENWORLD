@@ -37,6 +37,8 @@ export async function readData(path, token = null) {
       throw new Error(`GitHub API error: ${response.status}`);
     }
     
+    const file = await response.json();
+    
     if (!file.content) {
       console.warn('[GitHubData] File has no content:', path);
       return { data: [], sha: file.sha };

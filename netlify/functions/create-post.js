@@ -3,7 +3,7 @@
  * Client sends post data + User Token
  * Server validates User Token -> Writes to Data Repo using System PAT
  */
-const { readData, writeData } = require('./utils/gh');
+import { readData, writeData } from './utils/gh.js';
 
 export async function handler(event, context) {
   if (event.httpMethod !== 'POST') {

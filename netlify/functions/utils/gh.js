@@ -18,7 +18,7 @@ if (!GITHUB_PAT) {
 /**
  * Read file from data repo using System PAT
  */
-async function readData(path) {
+export async function readData(path) {
   try {
     const response = await fetch(
       `${API_BASE}/repos/${DATA_OWNER}/${DATA_REPO}/contents/${path}`,
@@ -71,7 +71,7 @@ async function readData(path) {
 /**
  * Write file to data repo using System PAT
  */
-async function writeData(path, data, sha, message) {
+export async function writeData(path, data, sha, message) {
   try {
     const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
 
@@ -108,5 +108,3 @@ async function writeData(path, data, sha, message) {
     throw error;
   }
 }
-
-module.exports = { readData, writeData };

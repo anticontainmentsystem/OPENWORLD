@@ -303,3 +303,16 @@
   background: var(--border);
   border-radius: 2px;
 }
+
+/* Github Browser Override for Comments */
+#repoBrowserMount .gh-browser {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  box-shadow: none;
+  margin-top: 0;
+  max-height: 300px;
+  z-index: 1; /* reset z-index */
+}

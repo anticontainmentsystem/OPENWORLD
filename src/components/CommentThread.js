@@ -266,7 +266,6 @@ export class CommentThread {
   }
 
   handleSubmit(input) {
-    // ... (existing handleSubmit code)
     const content = input.value.trim();
     if (!content && !this.currentAttachment) return;
 

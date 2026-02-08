@@ -5,7 +5,7 @@
 
 import { auth, posts, fetchUserRepos, formatRelativeTime } from './services/auth.js';
 import { GithubBrowser } from './components/GithubBrowser.js';
-import { CodeEditor } from './components/CodeEditor.js';
+import { CodeEditor } from './components/code-editor.js';
 import { ActivityPicker } from './components/ActivityPicker.js';
 import { CommentThread } from './components/CommentThread.js';
 

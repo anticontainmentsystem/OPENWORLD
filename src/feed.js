@@ -4,7 +4,9 @@
  */
 
 import { auth, posts, fetchUserRepos, formatRelativeTime } from './services/auth.js';
-import { CodeEditor, LANGUAGES, createCodeBlock } from './components/code-editor.js';
+import { GithubBrowser } from './components/GithubBrowser.js';
+import { CodeEditor } from './components/CodeEditor.js';
+import { ActivityPicker } from './components/ActivityPicker.js';
 import { CommentThread } from './components/CommentThread.js';
 
 // Add comment styles
@@ -174,6 +176,39 @@ function renderPostCard(post) {
       <pre class="code-block__body"><code>${escapeHtml(post.code.code)}</code></pre>
     </div>
   ` : '';
+
+  let activityHtml = '';
+  if (post.activity) {
+      const act = post.activity;
+      let icon, title, desc, link;
+      
+      if (act.type === 'commit') {
+          icon = '📝';
+          title = `Commit on ${act.repo.name}`;
+          desc = act.commit.message;
+          link = act.commit.html_url || act.commit.url;
+      } else if (act.type === 'issue') {
+          icon = '🐛';
+          title = `Issue #${act.issue.number}: ${act.issue.title}`;
+          desc = `State: ${act.issue.state}`;
+          link = act.issue.html_url;
+      } else if (act.type === 'pr') {
+          icon = '🔀';
+          title = `PR #${act.pr.number}: ${act.pr.title}`;
+          desc = `State: ${act.pr.state}`;
+          link = act.pr.html_url;
+      }
+      
+      activityHtml = `
+        <a href="${link}" target="_blank" class="activity-card-embed" style="display: flex; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-top: 12px; text-decoration: none; color: inherit; background: var(--surface);">
+           <div style="font-size: 1.5rem;">${icon}</div>
+           <div style="min-width: 0;">
+              <div style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${title}</div>
+              <div class="text-dim text-sm" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${desc}</div>
+           </div>
+        </a>
+      `;
+  }
   
   // Media rendering (image/video/gif)
   let mediaHtml = '';
@@ -205,7 +240,7 @@ function renderPostCard(post) {
   const currentUser = auth.getUser();
   const isOwner = currentUser && post.userId === currentUser.id;
   
-  // Modular structure: Text → Media → Attachments (code, repo)
+  // Modular structure: Text → Media → Attachments (code, repo, activity)
   return `
     <article class="post-card" data-post-id="${post.id}">
       <header class="post-card__header">
@@ -227,6 +262,8 @@ function renderPostCard(post) {
       ${mediaHtml}
       
       ${codeHtml}
+      
+      ${activityHtml}
       
       ${repoHtml}
       
@@ -334,6 +371,51 @@ function showRepoPicker() {
 }
 
 
+function updateSelectedActivity() {
+  let container = document.getElementById('selectedActivityContainer');
+  
+  if (selectedActivity) {
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'selectedActivityContainer';
+      
+      const codeContainer = document.getElementById('selectedCodeContainer');
+      const repoContainer = document.getElementById('selectedRepoContainer');
+      
+      if (codeContainer) codeContainer.after(container);
+      else if (repoContainer) repoContainer.after(container);
+      else composer.querySelector('.composer__header').after(container);
+    }
+    
+    let icon = '📝';
+    let title = 'Activity';
+    
+    if (selectedActivity.type === 'commit') {
+        icon = '📝';
+        title = `Commit on ${selectedActivity.repo.name}`;
+    } else if (selectedActivity.type === 'issue') {
+        icon = '🐛';
+        title = `Issue #${selectedActivity.issue.number}`;
+    } else if (selectedActivity.type === 'pr') {
+        icon = '🔀';
+        title = `PR #${selectedActivity.pr.number}`;
+    }
+    
+    container.innerHTML = `
+      <div class="selected-repo" style="border-color: var(--accent);">
+        ${icon} ${title}
+        <button class="selected-repo__remove" id="removeSelectedActivity">×</button>
+      </div>
+    `;
+    
+    document.getElementById('removeSelectedActivity').addEventListener('click', () => {
+      selectedActivity = null;
+      container.remove();
+    });
+  } else if (container) {
+    container.remove();
+  }
+}
 
 function updateSelectedRepo() {
   let container = document.getElementById('selectedRepoContainer');
@@ -485,17 +567,32 @@ function updateSelectedCode() {
 // EVENT LISTENERS
 // ═══════════════════════════════════════════════════════════════════════════
 
-function setupEventListeners() {
-  // Login prompt button
-  document.getElementById('loginPromptBtn')?.addEventListener('click', () => auth.login());
+const showActivityPicker = () => {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  document.body.appendChild(modal);
   
+  new ActivityPicker(modal, {
+    onSelect: (activity) => {
+      selectedActivity = activity;
+      modal.remove();
+      updateSelectedActivity();
+    },
+    onClose: () => modal.remove()
+  });
+};
+
+function setupEventListeners() {
   // Post button
   document.getElementById('postBtn')?.addEventListener('click', handlePost);
   
   // Composer tools
   const tools = document.querySelectorAll('.composer__tool');
-  tools[0]?.addEventListener('click', showRepoPicker); // Repo picker
-  tools[1]?.addEventListener('click', showCodeEditor); // Code editor
+  tools[0]?.addEventListener('click', showRepoPicker);
+  tools[1]?.addEventListener('click', showCodeEditor);
+  tools[2]?.addEventListener('click', showActivityPicker); // Activity picker
+  
+  // Load more editor
   
   // Tab switching
   document.querySelectorAll('.feed-tab').forEach(tab => {
@@ -601,13 +698,15 @@ async function handlePost() {
   let type = 'thought';
   if (selectedRepo) type = 'release';
   else if (selectedCode) type = 'commit';
+  else if (selectedActivity) type = 'activity';
   
   try {
     const newPost = await posts.createPost({
       content,
       type,
       repo: selectedRepo,
-      code: selectedCode
+      code: selectedCode,
+      activity: selectedActivity
     });
     
     // Add to top of feed
@@ -623,8 +722,10 @@ async function handlePost() {
     input.value = '';
     selectedRepo = null;
     selectedCode = null;
+    selectedActivity = null;
     document.getElementById('selectedRepoContainer')?.remove();
     document.getElementById('selectedCodeContainer')?.remove();
+    document.getElementById('selectedActivityContainer')?.remove();
     
     updatePostCount();
   } catch (error) {

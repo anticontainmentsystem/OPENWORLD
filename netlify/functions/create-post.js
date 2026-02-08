@@ -53,12 +53,12 @@ export async function handler(event, context) {
     }
     
     // 3. Parse Post Data
-    const { content, type, repo, code, media } = JSON.parse(event.body);
+    const { content, type, repo, code, media, activity } = JSON.parse(event.body);
     
     // 4. Validation
     const hasContent = content && content.trim();
     const hasMedia = media && media.url;
-    const hasAttachment = repo || code;
+    const hasAttachment = repo || code || activity;
     
     // Must have at least one of: content, attachment
     if (!hasContent && !hasAttachment) {
@@ -100,6 +100,7 @@ export async function handler(event, context) {
       type: type || 'thought',
       repo: repo || null,
       code: code || null,
+      activity: activity || null,
       reactions: { fire: 0 },
       comments: [],
       createdAt: new Date().toISOString()

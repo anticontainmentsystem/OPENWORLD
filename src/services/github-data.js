@@ -296,6 +296,23 @@ export const reposAPI = {
       console.error('[ReposAPI] Search error:', error);
       return [];
     }
+  },
+
+  async getStarred(username, token) {
+    try {
+      const response = await fetch(`${API_BASE}/users/${username}/starred?sort=created&direction=desc`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      
+      if (!response.ok) return [];
+      return await response.json();
+    } catch (error) {
+      console.error('[ReposAPI] GetStarred error:', error);
+      return [];
+    }
   }
 };
 
@@ -303,6 +320,20 @@ export const reposAPI = {
  * Users API
  */
  export const usersAPI = {
+  async getEvents(username, token = null) {
+      try {
+        const headers = { 'Accept': 'application/vnd.github.v3+json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        
+        const response = await fetch(`${API_BASE}/users/${username}/events`, { headers });
+        if (!response.ok) return [];
+        return await response.json();
+      } catch (error) {
+        console.error('[UsersAPI] Events error:', error);
+        return [];
+      }
+  },
+
   async get(username, token = null) {
     try {
       const result = await readData(`users/${username}.json`, token);

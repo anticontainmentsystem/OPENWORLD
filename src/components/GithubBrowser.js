@@ -77,6 +77,7 @@ export class GithubBrowser {
              ${this.mode === 'repos' ? `
                <div class="gh-browser__tabs">
                  <button class="gh-browser__tab gh-browser__tab--active" data-tab="my">My Repos</button>
+                 <button class="gh-browser__tab" data-tab="starred">Starred</button>
                  <button class="gh-browser__tab" data-tab="search">Search</button>
                </div>
              ` : ''}
@@ -104,9 +105,13 @@ export class GithubBrowser {
   }
 
   renderRepoList() {
-    if (this.userRepos.length === 0) return '<div class="gh-browser__empty">No repositories found.</div>';
+    return this.renderRepoItems(this.userRepos);
+  }
+
+  renderRepoItems(repos) {
+    if (!repos || repos.length === 0) return '<div class="gh-browser__empty">No repositories found.</div>';
     
-    return this.userRepos.map(repo => {
+    return repos.map(repo => {
       const ownerName = typeof repo.owner === 'string' ? repo.owner : repo.owner?.login || '';
       return `
         <div class="gh-item" data-repo-json='${JSON.stringify(repo).replace(/'/g, "&#39;")}'>
@@ -246,7 +251,8 @@ export class GithubBrowser {
         tabs.forEach(t => t.classList.remove('gh-browser__tab--active'));
         e.target.classList.add('gh-browser__tab--active');
         
-        const isSearch = e.target.dataset.tab === 'search';
+        const tabName = e.target.dataset.tab;
+        const isSearch = tabName === 'search';
         const searchBar = container.querySelector('.gh-browser__search-bar');
         const contentEl = container.querySelector('.gh-browser__content');
         
@@ -255,7 +261,15 @@ export class GithubBrowser {
         if (isSearch) {
           contentEl.innerHTML = '<div class="gh-browser__empty">Type to search...</div>';
           searchBar.querySelector('input').focus();
+        } else if (tabName === 'starred') {
+          contentEl.innerHTML = '<div class="gh-browser__loading">Loading starred repos...</div>';
+          const token = auth.getUser()?.accessToken;
+          reposAPI.getStarred(auth.getUser().username, token).then(repos => {
+             contentEl.innerHTML = this.renderRepoItems(repos);
+             this.bindContentEvents();
+          });
         } else {
+          // 'my' tab
           contentEl.innerHTML = this.renderRepoList();
           this.bindContentEvents(); 
         }

@@ -129,6 +129,22 @@ export const postsAPI = {
       return [];
     }
   },
+
+  /**
+   * Fetch a single post by ID (Secure Proxy)
+   */
+  async get(postId, token) {
+    try {
+      const response = await fetch(`/.netlify/functions/get-post?id=${postId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      console.error('[PostsAPI] Get error:', error);
+      return null;
+    }
+  },
   
   async create(post, token) {
     // Backend Proxy: use Netlify Function
@@ -205,9 +221,46 @@ export const postsAPI = {
 };
 
 /**
+ * Repositories API (New)
+ */
+export const reposAPI = {
+  async getContents(owner, repo, path = '', token) {
+    try {
+      // Handle root path
+      const queryPath = path ? `&path=${encodeURIComponent(path)}` : '';
+      const url = `/.netlify/functions/get-repo-contents?owner=${owner}&repo=${repo}${queryPath}`;
+      
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) return [];
+      return await response.json();
+    } catch (error) {
+      console.error('[ReposAPI] Contents error:', error);
+      return [];
+    }
+  },
+
+  async getForks(owner, repo, token) {
+    try {
+      const response = await fetch(`/.netlify/functions/get-forks?owner=${owner}&repo=${repo}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) return [];
+      return await response.json();
+    } catch (error) {
+      console.error('[ReposAPI] Forks error:', error);
+      return [];
+    }
+  }
+};
+
+/**
  * Users API
  */
-export const usersAPI = {
+ export const usersAPI = {
   async get(username, token = null) {
     try {
       const result = await readData(`users/${username}.json`, token);

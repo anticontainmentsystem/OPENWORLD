@@ -324,7 +324,7 @@ function renderSuggestions(currentUser) {
 // REPO PICKER (GithubBrowser)
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { GithubBrowser } from './components/GithubBrowser.js';
+
 let browserInstance = null;
 
 function showRepoPicker() {

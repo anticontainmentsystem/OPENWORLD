@@ -233,3 +233,20 @@
   border-color: var(--accent-hover);
 }
 
+/* Scrollbar */
+.gh-browser__content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.gh-browser__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gh-browser__content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+.gh-browser__content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-dim);
+}

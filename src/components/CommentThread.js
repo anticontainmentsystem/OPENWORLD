@@ -265,7 +265,8 @@ export class CommentThread {
     };
   }
 
-  async handleSubmit(input) {
+  handleSubmit(input) {
+    // ... (existing handleSubmit code)
     const content = input.value.trim();
     if (!content && !this.currentAttachment) return;
 
@@ -279,14 +280,12 @@ export class CommentThread {
     submitBtn.disabled = true;
     submitBtn.textContent = '...';
 
-    try {
-      const newComment = await commentsAPI.add(
-        this.post.id, 
-        content, 
-        this.currentAttachment, 
-        token
-      );
-      
+    commentsAPI.add(
+      this.post.id, 
+      content, 
+      this.currentAttachment, 
+      token
+    ).then(newComment => {
       // Add to local list
       this.comments.push(newComment);
       
@@ -305,15 +304,22 @@ export class CommentThread {
       input.value = '';
       this.currentAttachment = null;
       this.container.querySelector('#attachPreview').style.display = 'none';
+      this.closeAttachment(); // Close panel if open
       
       // Callback
       this.onCommentAdded(newComment);
-      
-    } catch (error) {
+    }).catch(error => {
       alert(error.message || 'Failed to add comment');
-    } finally {
+    }).finally(() => {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Post';
+    });
+  }
+
+  closeAttachment() {
+    const attachPanel = this.container.querySelector('#attachPanel');
+    if (attachPanel) {
+      attachPanel.style.display = 'none';
     }
   }
 }

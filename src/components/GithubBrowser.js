@@ -335,15 +335,23 @@ export class GithubBrowser {
 
         if (action === 'select') {
           // Add owner if missing (sometimes just string)
-          if (repoData && typeof repoData.owner === 'string') {
-              repoData.owner = { login: repoData.owner };
+          if (repoData) {
+              if (typeof repoData.owner === 'string') {
+                  repoData.owner = { login: repoData.owner };
+              } else if (!repoData.owner && repoData.full_name) {
+                  repoData.owner = { login: repoData.full_name.split('/')[0] };
+              }
           }
           this.onSelect({ type: 'repo', data: repoData });
         } else if (action === 'browse') {
           // Ensure we have a valid repo object before navigating
           if (repoData) {
              if (!repoData.owner) {
-                 repoData.owner = { login: 'unknown' }; 
+                 if (repoData.full_name) {
+                     repoData.owner = { login: repoData.full_name.split('/')[0] };
+                 } else {
+                     repoData.owner = { login: 'unknown' }; 
+                 }
              } else if (typeof repoData.owner === 'string') {
                  repoData.owner = { login: repoData.owner };
              }

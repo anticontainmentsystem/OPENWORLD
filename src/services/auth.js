@@ -152,8 +152,11 @@ class PostsService {
     return this.posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }
 
-  getPostsByUser(userId) {
-    return this.posts.filter(p => p.userId === userId);
+  getPostsByUser(userIdOrName) {
+    return this.posts.filter(p => 
+      String(p.userId) === String(userIdOrName) || 
+      p.username === userIdOrName
+    );
   }
 
   async createPost({ content, type = 'thought', repo = null, code = null }) {

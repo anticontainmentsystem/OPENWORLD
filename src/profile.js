@@ -574,10 +574,14 @@ function renderStarredRepos() {
   bindRepoActions();
 }
 
+import { renderPostCard } from './components/PostCard.js';
+import { CommentThread } from './components/CommentThread.js';
+
+// ...
+
 function renderUserPosts(userIdOrName) {
   const allPosts = posts.getPosts();
   // Filter by userId corresponding to the profile being viewed through userIdOrName
-  // Note: userIdOrName can be ID or username. We check both.
   const userPosts = allPosts.filter(p => p.userId === userIdOrName || p.username === userIdOrName);
   
   const postsContainer = document.getElementById('userPosts');
@@ -587,38 +591,78 @@ function renderUserPosts(userIdOrName) {
     return;
   }
   
-  postsContainer.innerHTML = userPosts.map(post => `
-    <div class="post-card">
-      <div class="post-card__header">
-        <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__avatar-link">
-          <img src="${post.userAvatar || 'https://github.com/identicons/'+post.username+'.png'}" class="post-card__avatar" alt="${post.username}">
-        </a>
-        <div class="post-card__meta">
-          <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__name">${escapeHtml(post.userName || post.username)}</a>
-          <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__username">@${escapeHtml(post.username)}</a>
-          <span class="post-card__time">${formatRelativeTime(post.createdAt)}</span>
-        </div>
-      </div>
-      <div class="post-card__content">${escapeHtml(post.content || '')}</div>
-      ${post.code ? `
-        <div class="code-block" data-language="${post.code.language}">
-          <div class="code-block__header">
-            <span class="code-block__language">${post.code.language}</span>
-          </div>
-          <pre class="code-block__body"><code>${escapeHtml(post.code.code)}</code></pre>
-        </div>
-      ` : ''}
-      ${post.repo ? `
-        <a href="${post.repo.url}" class="selected-repo" target="_blank" style="margin-top: var(--sp-2);">
-          <span>📦 ${escapeHtml(post.repo.name)}</span>
-          ${post.repo.stars ? `<span>⭐ ${post.repo.stars}</span>` : ''}
-        </a>
-      ` : ''}
-      <div class="post-card__actions">
-         <span class="text-dim">🔥 ${post.reactions?.fire || 0}</span>
-      </div>
-    </div>
-  `).join('');
+  // Use shared PostCard component
+  postsContainer.innerHTML = userPosts.map(post => renderPostCard(post)).join('');
+  
+  // Bind events if not already bound
+  if (!postsContainer.dataset.eventsBound) {
+      postsContainer.addEventListener('click', (e) => handleProfilePostActions(e, userIdOrName));
+      postsContainer.dataset.eventsBound = 'true';
+  }
+}
+
+async function handleProfilePostActions(e, currentUserIdOrName) {
+  // Copy code button
+  const copyBtn = e.target.closest('.code-block__copy');
+  if (copyBtn) {
+    const code = decodeURIComponent(copyBtn.dataset.code);
+    navigator.clipboard.writeText(code).then(() => {
+      copyBtn.textContent = '✓';
+      setTimeout(() => copyBtn.textContent = '📋', 1500);
+    });
+    return;
+  }
+  
+  const action = e.target.closest('.post-card__action');
+  if (!action) return;
+  
+  const actionType = action.dataset.action;
+  const postId = action.dataset.postId;
+  
+  if (actionType === 'react' && postId) {
+    const updatedPost = await posts.reactToPost(postId, 'fire');
+    if (updatedPost) {
+      const countEl = action.querySelector('span');
+      const total = Object.values(updatedPost.reactions || { fire: 0 }).reduce((a, b) => a + b, 0);
+      countEl.textContent = total;
+      if (updatedPost.hasReacted) action.classList.add('post-card__action--active');
+      else action.classList.remove('post-card__action--active');
+    }
+  }
+  
+  if (actionType === 'delete' && postId) {
+    if (confirm('Delete this post?')) {
+      await posts.deletePost(postId);
+      renderUserPosts(currentUserIdOrName);
+      // Update count
+      const statPostsEl = document.getElementById('statPosts');
+      if (statPostsEl) statPostsEl.textContent = posts.getPostsByUser(currentUserIdOrName).length;
+    }
+  }
+  
+  if (actionType === 'comment' && postId) {
+    const container = document.getElementById(`comments-${postId}`);
+    if (!container) return;
+    
+    const isVisible = container.style.display !== 'none';
+    container.style.display = isVisible ? 'none' : 'block';
+    
+    if (!isVisible && !container.dataset.initialized) {
+      const post = posts.getPosts().find(p => p.id === postId);
+      if (post) {
+        new CommentThread(container, post, {
+          onCommentAdded: (newComment) => {
+            const btn = document.querySelector(`[data-action="comment"][data-post-id="${postId}"] span`);
+            if(btn) {
+                const currentCount = parseInt(btn.textContent) || 0;
+                btn.textContent = currentCount + 1;
+            }
+          }
+        });
+        container.dataset.initialized = 'true';
+      }
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -63,7 +63,6 @@ function renderUserBadge(user) {
   if(!container) return;
 
   container.innerHTML = `
-    <div id="notificationContainer" style="display:inline-block;"></div>
     <button class="user-badge__trigger" id="userBadgeTrigger">
       <img src="${user.avatar}" alt="${user.name}" class="user-badge__avatar">
       <span class="user-badge__name">${user.username}</span>
@@ -76,6 +75,10 @@ function renderUserBadge(user) {
       <ul class="user-badge__dropdown-menu">
         <li><a href="/pillars/community/profile.html" class="user-badge__dropdown-item">👤 Profile</a></li>
         <li><a href="/pillars/community/" class="user-badge__dropdown-item">🌐 Community</a></li>
+        
+        <!-- Notification Container -->
+        <li id="notificationContainer"></li>
+        
         <li class="user-badge__dropdown-divider"></li>
         <li><button class="user-badge__dropdown-item" id="logoutBtn">Sign Out</button></li>
       </ul>

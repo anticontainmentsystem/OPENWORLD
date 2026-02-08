@@ -28,7 +28,6 @@ function updateAuthUI(user) {
   
   if (user) {
     userBadge.innerHTML = `
-      <div id="notificationContainer" style="display:inline-block;"></div>
       <button class="user-badge__trigger" id="userBadgeTrigger">
         <img src="${user.avatar}" alt="${user.name}" class="user-badge__avatar">
         <span class="user-badge__name">${user.username}</span>
@@ -41,6 +40,10 @@ function updateAuthUI(user) {
         <ul class="user-badge__dropdown-menu">
           <li><a href="/pillars/community/profile.html" class="user-badge__dropdown-item">👤 Profile</a></li>
           <li><a href="/pillars/community/" class="user-badge__dropdown-item">🌐 Community</a></li>
+          
+          <!-- Notification Container -->
+          <li id="notificationContainer"></li>
+          
           <li class="user-badge__dropdown-divider"></li>
           <li><button class="user-badge__dropdown-item" id="logoutBtn">Sign Out</button></li>
         </ul>
@@ -49,20 +52,11 @@ function updateAuthUI(user) {
     
     // Init Notification Dropdown
     const notifContainer = userBadge.querySelector('#notificationContainer');
-    new NotificationDropdown(notifContainer);
+    if(notifContainer) {
+       new NotificationDropdown(notifContainer);
+    }
 
     const trigger = userBadge.querySelector('#userBadgeTrigger');
-    const dropdown = userBadge.querySelector('#userDropdown');
-    
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dropdown.classList.toggle('user-badge__dropdown--open'); // Changed class to match CSS if exists, or use standard 'show'
-    });
-    
-    // Check core.css for dropdown class. usually it's just display none/block. 
-    // main.js used user-badge--open on parent. Let's stick to that for the User Dropdown
-    // But wait, the previous code toggled userBadge class. 
-    // Let's revert to the exact previous logic for user dropdown but keep notif separate.
     
     trigger.onclick = (e) => {
        e.stopPropagation();

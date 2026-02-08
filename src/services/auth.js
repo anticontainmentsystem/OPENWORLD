@@ -153,9 +153,10 @@ class PostsService {
   }
 
   getPostsByUser(userIdOrName) {
+    const target = String(userIdOrName).toLowerCase();
     return this.posts.filter(p => 
       String(p.userId) === String(userIdOrName) || 
-      p.username === userIdOrName
+      (p.username && p.username.toLowerCase() === target)
     );
   }
 

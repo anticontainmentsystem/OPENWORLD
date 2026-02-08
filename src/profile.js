@@ -247,10 +247,10 @@ async function loadProfile() {
     
     // Load and render posts
     await posts.loadPosts();
-    renderUserPosts(user.id || user.username);
+    renderUserPosts(user.username || user.id);
     
     // Update Post Count
-    const postCount = posts.getPostsByUser(user.id || user.username).length;
+    const postCount = posts.getPostsByUser(user.username || user.id).length;
     const statPostsEl = document.getElementById('statPosts');
     if (statPostsEl) statPostsEl.textContent = postCount;
     

@@ -40,12 +40,47 @@ export async function handler(event, context) {
     let actorProfile = actorData?.data || { username: actorUsername };
 
     // Read Target
+    // Read Target
     const targetPath = `users/${targetUsername}.json`;
     const targetData = await readData(targetPath);
-    if (!targetData) {
-      return { statusCode: 404, body: JSON.stringify({ error: 'Target user not found' }) };
+    
+    let targetProfile;
+    let targetSha = null;
+
+    if (targetData) {
+      targetProfile = targetData.data;
+      targetSha = targetData.sha;
+    } else {
+      // Target not in DB? Fetch from GitHub
+      console.log(`Target ${targetUsername} not found in DB, fetching from GitHub...`);
+      const targetUserRes = await fetch(`https://api.github.com/users/${targetUsername}`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+      });
+      
+      if (!targetUserRes.ok) {
+           return { statusCode: 404, body: JSON.stringify({ error: 'Target user not found on GitHub' }) };
+      }
+      const ghTarget = await targetUserRes.json();
+      
+      targetProfile = {
+          id: String(ghTarget.id),
+          username: ghTarget.login,
+          name: ghTarget.name || ghTarget.login,
+          avatar: ghTarget.avatar_url,
+          bio: ghTarget.bio,
+          location: ghTarget.location,
+          joinedAt: ghTarget.created_at,
+          followers: ghTarget.followers,
+          following: ghTarget.following,
+          followersList: [],
+          followingList: [],
+          pinnedRepos: [],
+          starredRepos: []
+      };
     }
-    let targetProfile = targetData.data;
 
     // Initialize lists if missing
     actorProfile.followingList = actorProfile.followingList || [];
@@ -104,7 +139,7 @@ export async function handler(event, context) {
         await writeData(
         targetPath,
         targetProfile,
-        targetData.sha,
+        targetSha, // Use the SHA we resolved (null if new file)
         `Was ${action}ed by @${actorUsername}`
         );
     } catch (e) {

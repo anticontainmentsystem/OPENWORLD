@@ -595,7 +595,7 @@ async function handlePost() {
 function updatePostCount() {
   const user = auth.getUser();
   if (user) {
-    document.getElementById('statPosts').textContent = posts.getPostsByUser(user.id).length;
+    document.getElementById('statPosts').textContent = posts.getPostsByUser(user.username || user.id).length;
   }
 }
 

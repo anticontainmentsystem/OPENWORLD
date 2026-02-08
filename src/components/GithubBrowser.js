@@ -133,19 +133,32 @@ export class GithubBrowser {
       return;
     }
 
-    // Handle owner as string or object
-    const ownerName = typeof this.currentRepo.owner === 'string' 
+    // Handle owner/repo splitting if name contains slash
+    let ownerName = typeof this.currentRepo.owner === 'string' 
       ? this.currentRepo.owner 
       : this.currentRepo.owner?.login || this.currentRepo.full_name?.split('/')[0];
     
+    let repoName = this.currentRepo.name;
+
+    // If name contains slash (e.g. owner/repo), split it
+    if (repoName.includes('/')) {
+        const parts = repoName.split('/');
+        ownerName = parts[0];
+        repoName = parts[1];
+    }
+
     if (!ownerName) {
-      contentEl.innerHTML = '<div class="gh-browser__error">Unable to determine repository owner</div>';
-      return;
+      if (this.currentRepo.full_name) {
+          ownerName = this.currentRepo.full_name.split('/')[0];
+      } else {
+          contentEl.innerHTML = '<div class="gh-browser__error">Unable to determine repository owner</div>';
+          return;
+      }
     }
 
     const items = await reposAPI.getContents(
       ownerName, 
-      this.currentRepo.name, 
+      repoName, 
       this.currentPath, 
       token
     );

@@ -210,9 +210,8 @@ export const postsAPI = {
       const result = await response.json();
       if (!result.success) return null;
 
-      // Optimistically return the updated post structure (client will incremement locally)
-      // Or we could re-fetch. For now, returning minimal object to signal success.
-      return { id: postId, reactions: { [reactionType]: 1 } }; 
+      // Return full server response with toggle state
+      return result;
     } catch (error) {
       console.error('[PostsAPI] React error:', error);
       return null;

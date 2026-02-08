@@ -192,20 +192,29 @@ class PostsService {
 
   async reactToPost(postId, reactionType) {
     const token = auth.getAccessToken();
-    const post = this.posts.find(p => p.id === postId);
+    if (!token) return null;
     
-    if (post && post.reactions[reactionType] !== undefined) {
-      post.reactions[reactionType]++;
+    try {
+      // Server handles toggle logic now
+      const result = await postsAPI.react(postId, reactionType, token);
       
-      if (token) {
-        try {
-          await postsAPI.react(postId, reactionType, token);
-        } catch (error) {
-          console.error('[Posts] React error:', error);
+      if (result && result.post) {
+        // Update local post with server data
+        const localPost = this.posts.find(p => p.id === postId);
+        if (localPost) {
+          localPost.reactions = result.post.reactions;
         }
+        return {
+          id: postId,
+          reactions: result.post.reactions,
+          hasReacted: result.hasReacted
+        };
       }
+      return null;
+    } catch (error) {
+      console.error('[Posts] React error:', error);
+      return null;
     }
-    return post;
   }
 
   async deletePost(postId) {

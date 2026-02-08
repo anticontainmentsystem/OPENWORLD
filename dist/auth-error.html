@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth Error — OpenWorld</title>
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    .auth-error {
+      padding: var(--sp-4);
+      max-width: 400px;
+    }
+    .auth-error__icon {
+      font-size: 2rem;
+      margin-bottom: var(--sp-2);
+    }
+    .auth-error__message {
+      color: var(--copper-500);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      background: var(--surface);
+      padding: var(--sp-2);
+      border-radius: var(--radius);
+      margin: var(--sp-3) 0;
+    }
+  </style>
+  <link rel="stylesheet" crossorigin href="/assets/core-DCGjICIK.css">
+</head>
+<body>
+  <div class="auth-error">
+    <div class="auth-error__icon">⚠️</div>
+    <h1>Authentication Failed</h1>
+    <p class="auth-error__message" id="errorMessage"></p>
+    <a href="/" class="btn">Return Home</a>
+  </div>
+  
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error') || 'Unknown error';
+    document.getElementById('errorMessage').textContent = error;
+  </script>
+</body>
+</html>

@@ -206,11 +206,11 @@
   opacity: 1;
 }
 
-/* Dark buttons with white text */
+/* Dark buttons with white text - explicit colors */
 .gh-btn {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #fff;
   padding: 4px 10px;
   font-size: 0.75rem;
   border-radius: var(--radius);
@@ -218,8 +218,8 @@
 }
 
 .gh-btn:hover {
-  background: var(--surface);
-  border-color: var(--accent);
+  background: #252525;
+  border-color: #555;
 }
 
 .gh-btn--primary {

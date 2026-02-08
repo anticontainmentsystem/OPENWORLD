@@ -225,7 +225,7 @@ function renderSuggestions(currentUser) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// REPO PICKER
+// REPO PICKER (with search)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function showRepoPicker() {
@@ -235,26 +235,23 @@ function showRepoPicker() {
     return;
   }
   
-  if (userRepos.length === 0) {
-    alert('No repositories found. Make sure you have public repos on GitHub.');
-    return;
-  }
-  
   const picker = document.createElement('div');
   picker.id = 'repoPicker';
   picker.className = 'repo-picker';
   picker.innerHTML = `
     <div class="repo-picker__header">
-      <span>Select Repository</span>
+      <div class="repo-picker__tabs">
+        <button class="repo-picker__tab repo-picker__tab--active" data-tab="my">My Repos</button>
+        <button class="repo-picker__tab" data-tab="search">🔍 Search</button>
+      </div>
       <button class="repo-picker__close" id="closeRepoPicker">×</button>
     </div>
-    <div class="repo-picker__list">
-      ${userRepos.map(repo => `
-        <button class="repo-picker__item" data-repo='${JSON.stringify(repo)}'>
-          <span class="repo-picker__name">📦 ${repo.name}</span>
-          ${repo.description ? `<span class="repo-picker__desc">${repo.description.substring(0, 50)}</span>` : ''}
-        </button>
-      `).join('')}
+    <div class="repo-picker__search" id="repoSearchContainer" style="display: none;">
+      <input type="text" class="repo-picker__input" id="repoSearchInput" placeholder="Search any GitHub repo...">
+    </div>
+    <div class="repo-picker__list" id="repoList">
+      ${userRepos.length > 0 ? userRepos.map(repo => renderRepoItem(repo)).join('') : 
+        '<p class="repo-picker__empty">No public repos found</p>'}
     </div>
   `;
   
@@ -339,6 +336,57 @@ function showRepoPicker() {
         cursor: pointer;
         padding: 0 2px;
       }
+      .repo-picker__tabs {
+        display: flex;
+        gap: var(--sp-1);
+      }
+      .repo-picker__tab {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        cursor: pointer;
+        padding: var(--sp-1);
+        border-radius: var(--radius);
+        font-family: var(--font);
+      }
+      .repo-picker__tab:hover {
+        color: var(--text);
+      }
+      .repo-picker__tab--active {
+        color: var(--copper-500);
+        background: var(--bg);
+      }
+      .repo-picker__search {
+        padding: var(--sp-2);
+        border-bottom: 1px solid var(--border);
+      }
+      .repo-picker__input {
+        width: 100%;
+        padding: var(--sp-1) var(--sp-2);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 0.85rem;
+      }
+      .repo-picker__input:focus {
+        outline: none;
+        border-color: var(--copper-500);
+      }
+      .repo-picker__stars {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-left: var(--sp-1);
+      }
+      .repo-picker__empty {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-align: center;
+        padding: var(--sp-3);
+        margin: 0;
+      }
     `;
     document.head.appendChild(style);
   }
@@ -349,13 +397,92 @@ function showRepoPicker() {
   // Event listeners
   document.getElementById('closeRepoPicker').addEventListener('click', () => picker.remove());
   
-  picker.querySelectorAll('.repo-picker__item').forEach(item => {
+  // Tab switching
+  picker.querySelectorAll('.repo-picker__tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      picker.querySelectorAll('.repo-picker__tab').forEach(t => t.classList.remove('repo-picker__tab--active'));
+      tab.classList.add('repo-picker__tab--active');
+      
+      const isSearch = tab.dataset.tab === 'search';
+      document.getElementById('repoSearchContainer').style.display = isSearch ? 'block' : 'none';
+      
+      if (isSearch) {
+        document.getElementById('repoSearchInput').focus();
+        document.getElementById('repoList').innerHTML = '<p class="repo-picker__empty">Type to search any repo...</p>';
+      } else {
+        document.getElementById('repoList').innerHTML = userRepos.length > 0 
+          ? userRepos.map(repo => renderRepoItem(repo)).join('') 
+          : '<p class="repo-picker__empty">No public repos found</p>';
+        bindRepoItems();
+      }
+    });
+  });
+  
+  // Search with debounce
+  let searchTimeout;
+  document.getElementById('repoSearchInput')?.addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+      document.getElementById('repoList').innerHTML = '<p class="repo-picker__empty">Type at least 2 characters...</p>';
+      return;
+    }
+    
+    document.getElementById('repoList').innerHTML = '<p class="repo-picker__empty">Searching...</p>';
+    
+    searchTimeout = setTimeout(async () => {
+      await searchRepos(query);
+    }, 300);
+  });
+  
+  bindRepoItems();
+}
+
+function renderRepoItem(repo) {
+  return `
+    <button class="repo-picker__item" data-repo='${JSON.stringify(repo).replace(/'/g, "&#39;")}'>
+      <span class="repo-picker__name">📦 ${repo.name}</span>
+      ${repo.description ? `<span class="repo-picker__desc">${escapeHtml(repo.description.substring(0, 50))}</span>` : ''}
+      ${repo.stars ? `<span class="repo-picker__stars">⭐ ${repo.stars}</span>` : ''}
+    </button>
+  `;
+}
+
+function bindRepoItems() {
+  document.querySelectorAll('.repo-picker__item').forEach(item => {
     item.addEventListener('click', () => {
-      selectedRepo = JSON.parse(item.dataset.repo);
-      picker.remove();
+      selectedRepo = JSON.parse(item.dataset.repo.replace(/&#39;/g, "'"));
+      document.getElementById('repoPicker')?.remove();
       updateSelectedRepo();
     });
   });
+}
+
+async function searchRepos(query) {
+  const user = auth.getUser();
+  if (!user?.accessToken) return;
+  
+  try {
+    const response = await fetch(`/.netlify/functions/search-repos?q=${encodeURIComponent(query)}`, {
+      headers: { 'Authorization': `Bearer ${user.accessToken}` }
+    });
+    
+    const repos = await response.json();
+    
+    if (repos.error) {
+      document.getElementById('repoList').innerHTML = `<p class="repo-picker__empty">${repos.error}</p>`;
+      return;
+    }
+    
+    document.getElementById('repoList').innerHTML = repos.length > 0
+      ? repos.map(repo => renderRepoItem(repo)).join('')
+      : '<p class="repo-picker__empty">No repos found</p>';
+    
+    bindRepoItems();
+  } catch (error) {
+    document.getElementById('repoList').innerHTML = '<p class="repo-picker__empty">Search failed</p>';
+  }
 }
 
 function updateSelectedRepo() {

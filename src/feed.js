@@ -1,9 +1,10 @@
 /**
  * OpenWorld Feed
- * Real post creation with GitHub repo attachment
+ * Real post creation with GitHub repo attachment and code blocks
  */
 
 import { auth, posts, fetchUserRepos, formatRelativeTime } from './services/auth.js';
+import { CodeEditor, LANGUAGES, createCodeBlock } from './components/code-editor.js';
 
 // DOM Elements
 const userBadge = document.getElementById('userBadge');
@@ -15,6 +16,8 @@ const userStats = document.getElementById('userStats');
 
 let userRepos = [];
 let selectedRepo = null;
+let selectedCode = null; // { code: string, language: string }
+let codeEditor = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
@@ -150,6 +153,16 @@ function renderPostCard(post) {
     </a>
   ` : '';
   
+  const codeHtml = post.code ? `
+    <div class="code-block" data-post-code>
+      <div class="code-block__header">
+        <span class="code-block__language">${LANGUAGES.find(l => l.id === post.code.language)?.name || post.code.language}</span>
+        <button class="code-block__copy" title="Copy code" data-code="${encodeURIComponent(post.code.code)}">📋</button>
+      </div>
+      <pre class="code-block__body"><code>${escapeHtml(post.code.code)}</code></pre>
+    </div>
+  ` : '';
+  
   const totalReactions = Object.values(post.reactions).reduce((a, b) => a + b, 0);
   const currentUser = auth.getUser();
   const isOwner = currentUser && post.userId === currentUser.id;
@@ -168,7 +181,9 @@ function renderPostCard(post) {
         ${post.type ? `<span class="post-card__type post-card__type--${post.type}">${typeLabels[post.type] || post.type}</span>` : ''}
       </header>
       
-      <div class="post-card__content">${escapeHtml(post.content)}</div>
+      ${post.content ? `<div class="post-card__content">${escapeHtml(post.content)}</div>` : ''}
+      
+      ${codeHtml}
       
       ${repoHtml}
       
@@ -371,6 +386,125 @@ function updateSelectedRepo() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// CODE EDITOR
+// ═══════════════════════════════════════════════════════════════════════════
+
+function showCodeEditor() {
+  // Remove existing modal
+  document.getElementById('codeEditorModal')?.remove();
+  
+  const modal = document.createElement('div');
+  modal.id = 'codeEditorModal';
+  modal.className = 'code-editor-modal';
+  modal.innerHTML = `
+    <div class="code-editor-modal__content">
+      <div class="code-editor-modal__header">
+        <span class="code-editor-modal__title">💻 Add Code</span>
+        <select class="code-editor-modal__lang" id="codeLangSelect">
+          ${LANGUAGES.map(l => `<option value="${l.id}">${l.name}</option>`).join('')}
+        </select>
+        <button class="code-editor-modal__close" id="closeCodeEditor">×</button>
+      </div>
+      <div class="code-editor-modal__body" id="codeEditorContainer"></div>
+      <div class="code-editor-modal__footer">
+        <button class="btn" id="cancelCode">Cancel</button>
+        <button class="btn btn--primary" id="insertCode">Insert Code</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Initialize Monaco editor
+  const container = document.getElementById('codeEditorContainer');
+  codeEditor = new CodeEditor(container, {
+    language: 'javascript',
+    value: selectedCode?.code || ''
+  });
+  
+  // Set initial language if editing
+  if (selectedCode?.language) {
+    document.getElementById('codeLangSelect').value = selectedCode.language;
+    codeEditor.setLanguage(selectedCode.language);
+  }
+  
+  // Language change
+  document.getElementById('codeLangSelect').addEventListener('change', (e) => {
+    codeEditor.setLanguage(e.target.value);
+  });
+  
+  // Close handlers
+  const closeModal = () => {
+    codeEditor?.dispose();
+    codeEditor = null;
+    modal.remove();
+  };
+  
+  document.getElementById('closeCodeEditor').addEventListener('click', closeModal);
+  document.getElementById('cancelCode').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  
+  // Insert code
+  document.getElementById('insertCode').addEventListener('click', () => {
+    const code = codeEditor.getValue().trim();
+    const language = document.getElementById('codeLangSelect').value;
+    
+    if (code) {
+      selectedCode = { code, language };
+      updateSelectedCode();
+    }
+    closeModal();
+  });
+  
+  // Focus editor
+  setTimeout(() => codeEditor.focus(), 100);
+}
+
+function updateSelectedCode() {
+  let container = document.getElementById('selectedCodeContainer');
+  
+  if (selectedCode) {
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'selectedCodeContainer';
+      const repoContainer = document.getElementById('selectedRepoContainer');
+      if (repoContainer) {
+        repoContainer.after(container);
+      } else {
+        composer.querySelector('.composer__header').after(container);
+      }
+    }
+    
+    const langName = LANGUAGES.find(l => l.id === selectedCode.language)?.name || selectedCode.language;
+    const preview = selectedCode.code.split('\n')[0].substring(0, 40) + (selectedCode.code.length > 40 ? '...' : '');
+    
+    container.innerHTML = `
+      <div class="selected-code">
+        <span class="selected-code__icon">💻</span>
+        <div class="selected-code__info">
+          <div class="selected-code__lang">${langName}</div>
+          <div class="selected-code__preview">${escapeHtml(preview)}</div>
+        </div>
+        <div class="selected-code__actions">
+          <button class="selected-code__btn" id="editCode" title="Edit">✏️</button>
+          <button class="selected-code__btn" id="removeCode" title="Remove">×</button>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('editCode').addEventListener('click', showCodeEditor);
+    document.getElementById('removeCode').addEventListener('click', () => {
+      selectedCode = null;
+      container.remove();
+    });
+  } else if (container) {
+    container.remove();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // EVENT LISTENERS
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -381,8 +515,10 @@ function setupEventListeners() {
   // Post button
   document.getElementById('postBtn')?.addEventListener('click', handlePost);
   
-  // Repo picker
-  document.querySelector('.composer__tool')?.addEventListener('click', showRepoPicker);
+  // Composer tools
+  const tools = document.querySelectorAll('.composer__tool');
+  tools[0]?.addEventListener('click', showRepoPicker); // Repo picker
+  tools[1]?.addEventListener('click', showCodeEditor); // Code editor
   
   // Tab switching
   document.querySelectorAll('.feed-tab').forEach(tab => {
@@ -403,6 +539,17 @@ function setupEventListeners() {
 }
 
 function handlePostActions(e) {
+  // Copy code button
+  const copyBtn = e.target.closest('.code-block__copy');
+  if (copyBtn) {
+    const code = decodeURIComponent(copyBtn.dataset.code);
+    navigator.clipboard.writeText(code).then(() => {
+      copyBtn.textContent = '✓';
+      setTimeout(() => copyBtn.textContent = '📋', 1500);
+    });
+    return;
+  }
+  
   const action = e.target.closest('.post-card__action');
   if (!action) return;
   
@@ -439,7 +586,7 @@ async function handlePost() {
   const postBtn = document.getElementById('postBtn');
   const content = input.value.trim();
   
-  if (!content) {
+  if (!content && !selectedCode) {
     input.focus();
     return;
   }
@@ -448,11 +595,17 @@ async function handlePost() {
   postBtn.disabled = true;
   postBtn.textContent = 'Posting...';
   
+  // Determine post type
+  let type = 'thought';
+  if (selectedRepo) type = 'release';
+  else if (selectedCode) type = 'commit';
+  
   try {
     const newPost = await posts.createPost({
       content,
-      type: selectedRepo ? 'release' : 'thought',
-      repo: selectedRepo
+      type,
+      repo: selectedRepo,
+      code: selectedCode
     });
     
     // Add to top of feed
@@ -464,10 +617,12 @@ async function handlePost() {
       loadingOrEmpty.remove();
     }
     
-    // Clear input
+    // Clear inputs
     input.value = '';
     selectedRepo = null;
+    selectedCode = null;
     document.getElementById('selectedRepoContainer')?.remove();
+    document.getElementById('selectedCodeContainer')?.remove();
     
     updatePostCount();
   } catch (error) {

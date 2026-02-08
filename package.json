@@ -19,5 +19,8 @@
     "ai",
     "anticontainment"
   ],
-  "author": "OpenWorld Collective"
+  "author": "OpenWorld Collective",
+  "dependencies": {
+    "monaco-editor": "^0.55.1"
+  }
 }

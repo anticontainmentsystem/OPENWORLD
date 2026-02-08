@@ -110,43 +110,76 @@ export const postsAPI = {
   },
   
   async create(post, token) {
-    // Pass token to readData to avoid 403 rate limits
-    let result;
+    // Backend Proxy: use Netlify Function
     try {
-      result = await readData('posts.json', token);
+      const response = await fetch('/.netlify/functions/create-post', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(post)
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create post');
+      }
+      
+      return await response.json();
     } catch (error) {
-      // If read failed (e.g. rate limit), we can't proceed safely
-      throw new Error(`Failed to read existing posts: ${error.message}`);
+      console.error('[PostsAPI] Create error:', error);
+      throw error;
     }
-    
-    const posts = result?.data || [];
-    const sha = result?.sha;
-    
-    posts.unshift(post);
-    
-    await writeData('posts.json', posts, sha, token, `Add post by @${post.username}`);
-    return post;
   },
   
   async delete(postId, username, token) {
-    const result = await readData('posts.json', token);
-    if (!result) return false;
-    
-    const posts = result.data.filter(p => p.id !== postId);
-    await writeData('posts.json', posts, result.sha, token, `Delete post by @${username}`);
-    return true;
+    try {
+      const response = await fetch('/.netlify/functions/manage-post', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          postId
+        })
+      });
+      
+      const result = await response.json();
+      return !!result.success;
+    } catch (error) {
+      console.error('[PostsAPI] Delete error:', error);
+      return false;
+    }
   },
   
   async react(postId, reactionType, token) {
-    const result = await readData('posts.json', token);
-    if (!result) return null;
-    
-    const post = result.data.find(p => p.id === postId);
-    if (post && post.reactions[reactionType] !== undefined) {
-      post.reactions[reactionType]++;
-      await writeData('posts.json', result.data, result.sha, token, `React to post`);
+    try {
+      const response = await fetch('/.netlify/functions/manage-post', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'react',
+          postId,
+          reactionType
+        })
+      });
+      
+      const result = await response.json();
+      if (!result.success) return null;
+
+      // Optimistically return the updated post structure (client will incremement locally)
+      // Or we could re-fetch. For now, returning minimal object to signal success.
+      return { id: postId, reactions: { [reactionType]: 1 } }; 
+    } catch (error) {
+      console.error('[PostsAPI] React error:', error);
+      return null;
     }
-    return post;
   }
 };
 
@@ -165,15 +198,22 @@ export const usersAPI = {
   
   async save(user, token) {
     try {
-      const result = await readData(`users/${user.username}.json`, token);
-      await writeData(
-        `users/${user.username}.json`,
-        user,
-        result?.sha,
-        token,
-        `Update profile for @${user.username}`
-      );
-      return user;
+      const response = await fetch('/.netlify/functions/update-profile', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(user)
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save profile');
+      }
+      
+      const result = await response.json();
+      return result.profile;
     } catch (error) {
       console.error('Failed to save user:', error);
       throw error;

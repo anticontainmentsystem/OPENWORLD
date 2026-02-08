@@ -5,6 +5,13 @@
 
 import { auth, posts, formatRelativeTime } from './services/auth.js';
 import { usersAPI } from './services/github-data.js';
+import { NotificationDropdown } from './components/NotificationDropdown.js';
+
+// Add styles
+const link = document.createElement('link');
+link.rel = 'stylesheet';
+link.href = '/src/styles/notification.css';
+document.head.appendChild(link);
 
 // Get URL params
 const urlParams = new URLSearchParams(window.location.search);
@@ -52,13 +59,6 @@ function updateAuthUI(user) {
 }
 
 function renderUserBadge(user) {
-  // We need a wrapper for the badge + notif
-  // If we already have a wrapper, clear it?
-  
-  // Existing structure in HTML might be just the badge container. 
-  // Let's assume user.badge is the container ID or class.
-  // Actually, looking at profile.html/profile.js, renderUserBadge updates 'userBadge' element.
-  
   const container = document.getElementById('userBadge');
   if(!container) return;
 
@@ -68,18 +68,44 @@ function renderUserBadge(user) {
       <img src="${user.avatar}" alt="${user.name}" class="user-badge__avatar">
       <span class="user-badge__name">${user.username}</span>
     </button>
+    <div class="user-badge__dropdown">
+      <div class="user-badge__dropdown-header">
+        <div class="user-badge__dropdown-name">${user.name}</div>
+        <div class="user-badge__dropdown-username">@${user.username}</div>
+      </div>
+      <ul class="user-badge__dropdown-menu">
+        <li><a href="/pillars/community/profile.html" class="user-badge__dropdown-item">👤 Profile</a></li>
+        <li><a href="/pillars/community/" class="user-badge__dropdown-item">🌐 Community</a></li>
+        <li class="user-badge__dropdown-divider"></li>
+        <li><button class="user-badge__dropdown-item" id="logoutBtn">Sign Out</button></li>
+      </ul>
+    </div>
   `;
   
-  document.getElementById('userBadgeTrigger').addEventListener('click', (e) => {
-    e.stopPropagation();
-    userBadge.classList.toggle('user-badge--open');
-  });
+  // Init Notification Dropdown
+  const notifContainer = container.querySelector('#notificationContainer');
+  if(notifContainer) {
+     new NotificationDropdown(notifContainer);
+  }
+
+  const trigger = document.getElementById('userBadgeTrigger');
+  if (trigger) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userBadge.classList.toggle('user-badge--open');
+    });
+  }
   
   document.addEventListener('click', () => userBadge.classList.remove('user-badge--open'));
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    auth.logout();
-    window.location.href = '/';
-  });
+  
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); 
+        auth.logout();
+        window.location.href = '/';
+    });
+  }
 }
 
 function renderLoginButton() {

@@ -71,6 +71,43 @@ class AuthService {
     this.notify();
   }
 
+  async followUser(targetUsername, action = 'follow') {
+    const token = this.getAccessToken();
+    if (!token) throw new Error('Not logged in');
+
+    // Optimistic Update
+    if (this.user) {
+      let list = this.user.followingList || [];
+      if (action === 'follow' && !list.includes(targetUsername)) {
+        list.push(targetUsername);
+        this.user.following = (this.user.following || 0) + 1;
+      } else if (action === 'unfollow' && list.includes(targetUsername)) {
+        list = list.filter(u => u !== targetUsername);
+        this.user.following = Math.max(0, (this.user.following || 0) - 1);
+      }
+      this.user.followingList = list;
+      this.notify(); // Update UI immediately
+    }
+
+    try {
+      const res = await fetch('/.netlify/functions/follow-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ targetUsername, action })
+      });
+      
+      if (!res.ok) throw new Error('Follow action failed');
+      return await res.json();
+    } catch (error) {
+      console.error('Follow error:', error);
+      // Revert optimistic update? For now, we leave it or reload.
+      throw error;
+    }
+  }
+
   subscribe(callback) {
     this.listeners.push(callback);
     return () => {

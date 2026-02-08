@@ -62,6 +62,23 @@ export async function handler(event, context) {
       
       if (post.reactions[reactionType] !== undefined) {
         post.reactions[reactionType]++;
+        
+        // Notify Post Owner
+        // We know user (actor) from token. post has username/userId.
+        // Avoid self-notification
+        if (post.username !== user.login) {
+          // Dynamic import of helper
+          import('./utils/notifications.js').then(({ createNotification }) => {
+             createNotification(post.username, 'reaction', {
+               username: user.login,
+               avatar: user.avatar_url
+             }, {
+               postId: post.id,
+               type: reactionType,
+               content: post.content ? post.content.substring(0, 50) : 'Code snippet'
+             });
+          }).catch(console.error);
+        }
       }
       message = `React to post ${postId} via OpenWorld Proxy`;
       

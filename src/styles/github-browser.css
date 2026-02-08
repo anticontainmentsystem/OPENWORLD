@@ -1,0 +1,222 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   GITHUB BROWSER COMPONENT
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.gh-browser {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-top: var(--sp-2);
+  max-height: 400px;
+  display: flex; /* Flex container */
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 200;
+  animation: slideDown 0.2s ease-out;
+  overflow: hidden; /* Contain children */
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gh-browser__header {
+  flex-shrink: 0; /* Don't shrink header */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.gh-browser__title {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.gh-browser__back {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: var(--sp-1);
+  border-radius: var(--radius);
+}
+
+.gh-browser__back:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.gh-browser__actions {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.gh-browser__tabs {
+  display: flex;
+  gap: var(--sp-1);
+  background: var(--bg);
+  padding: 2px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.gh-browser__tab {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: var(--font);
+}
+
+.gh-browser__tab:hover {
+  color: var(--text);
+}
+
+.gh-browser__tab--active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.gh-browser__close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 var(--sp-1);
+  line-height: 1;
+}
+
+.gh-browser__close:hover {
+  color: var(--text);
+}
+
+.gh-browser__search-bar {
+  flex-shrink: 0;
+  padding: var(--sp-2);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.gh-browser__content {
+  flex-grow: 1; /* Take remaining height */
+  overflow-y: auto; /* Scrollable content */
+  padding: var(--sp-1);
+  min-height: 200px;
+}
+
+.gh-browser__loading,
+.gh-browser__empty,
+.gh-browser__error {
+  padding: var(--sp-4);
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.gh-browser__error {
+  color: #ff6b6b;
+}
+
+/* Items */
+.gh-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  margin-bottom: 2px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.gh-item:hover {
+  background: var(--border);
+}
+
+.gh-item__icon {
+  font-size: 1.2rem;
+  color: var(--text-dim);
+}
+
+[data-type="dir"] .gh-item__icon {
+  color: var(--accent);
+}
+
+.gh-item__details {
+  flex: 1;
+  min-width: 0;
+}
+
+.gh-item__name {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-item__desc {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gh-item__actions {
+  display: flex;
+  gap: var(--sp-2);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.gh-item:hover .gh-item__actions {
+  opacity: 1;
+}
+
+.gh-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.gh-btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.gh-btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.gh-btn--primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}

@@ -254,6 +254,21 @@ export const reposAPI = {
       console.error('[ReposAPI] Forks error:', error);
       return [];
     }
+  },
+
+  async search(query, token) {
+    try {
+      const response = await fetch(`/.netlify/functions/search-repos?q=${encodeURIComponent(query)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      const repos = await response.json();
+      if (repos.error || !Array.isArray(repos)) return [];
+      return repos;
+    } catch (error) {
+      console.error('[ReposAPI] Search error:', error);
+      return [];
+    }
   }
 };
 

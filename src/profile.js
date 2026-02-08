@@ -52,23 +52,22 @@ function updateAuthUI(user) {
 }
 
 function renderUserBadge(user) {
-  userBadge.innerHTML = `
+  // We need a wrapper for the badge + notif
+  // If we already have a wrapper, clear it?
+  
+  // Existing structure in HTML might be just the badge container. 
+  // Let's assume user.badge is the container ID or class.
+  // Actually, looking at profile.html/profile.js, renderUserBadge updates 'userBadge' element.
+  
+  const container = document.getElementById('userBadge');
+  if(!container) return;
+
+  container.innerHTML = `
+    <div id="notificationContainer" style="display:inline-block;"></div>
     <button class="user-badge__trigger" id="userBadgeTrigger">
       <img src="${user.avatar}" alt="${user.name}" class="user-badge__avatar">
       <span class="user-badge__name">${user.username}</span>
     </button>
-    <div class="user-badge__dropdown">
-      <div class="user-badge__dropdown-header">
-        <div class="user-badge__dropdown-name">${user.name}</div>
-        <div class="user-badge__dropdown-username">@${user.username}</div>
-      </div>
-      <ul class="user-badge__dropdown-menu">
-        <li><a href="/pillars/community/profile.html" class="user-badge__dropdown-item">👤 Profile</a></li>
-        <li><a href="/pillars/community/" class="user-badge__dropdown-item">🌐 Community</a></li>
-        <li class="user-badge__dropdown-divider"></li>
-        <li><button class="user-badge__dropdown-item" id="logoutBtn">Sign Out</button></li>
-      </ul>
-    </div>
   `;
   
   document.getElementById('userBadgeTrigger').addEventListener('click', (e) => {
@@ -175,21 +174,55 @@ async function loadProfile() {
     if (isOwnProfile) {
       followBtn.textContent = 'Edit Profile';
       followBtn.onclick = () => {
-        window.location.href = '/pillars/community/profile.html?edit=1';
+        enableEditMode();
       };
     } else {
-      // TODO: Check follow status
-      followBtn.textContent = 'Follow';
-      followBtn.onclick = () => alert('Follow system coming soon!');
+      const currentUserData = auth.getUser();
+      const isFollowing = currentUserData?.followingList?.includes(user.username);
+      
+      updateFollowButton(isFollowing);
+      
+      followBtn.onclick = async () => {
+        if (!auth.isLoggedIn()) {
+          auth.login();
+          return;
+        }
+        
+        const action = followBtn.classList.contains('btn--outline') ? 'follow' : 'unfollow'; // Simple toggle check based on state styles
+        // Better: store state implies
+        const targetSameState = followBtn.textContent === 'Following'; // If it says Following, we want to Unfollow
+        const newAction = targetSameState ? 'unfollow' : 'follow';
+        
+        // Optimistic UI for button
+        followBtn.disabled = true;
+        
+        try {
+          await auth.followUser(user.username, newAction);
+          updateFollowButton(newAction === 'follow');
+          
+          // Update count
+          const countParam = document.getElementById('statFollowers');
+          let currentCount = parseInt(countParam.textContent.replace(/,/g, '')) || 0;
+          countParam.textContent = (newAction === 'follow' ? currentCount + 1 : currentCount - 1).toLocaleString();
+          
+        } catch (e) {
+          alert('Failed to update follow status');
+        } finally {
+          followBtn.disabled = false;
+        }
+      };
     }
     
     // Render content
     renderRepos(repos);
     
     // Load and render posts
-    await posts.loadPosts(); // Ensure posts are loaded
-    renderUserPosts(user.id || user.username); // Fallback to username if ID missing
+    await posts.loadPosts();
+    renderUserPosts(user.id || user.username);
     
+    // Load activity (Placeholder for now until we have an activity feed)
+    renderActivity();
+
   } catch (error) {
     console.error('Error loading profile:', error);
     document.querySelector('.profile-content').innerHTML = `<p class="error">Failed to load profile: ${error.message}</p>`;
@@ -198,42 +231,244 @@ async function loadProfile() {
   }
 }
 
+function updateFollowButton(isFollowing) {
+  const btn = document.getElementById('followBtn');
+  if (isFollowing) {
+    btn.textContent = 'Following';
+    btn.classList.add('btn--outline');
+    btn.classList.remove('btn--primary');
+  } else {
+    btn.textContent = 'Follow';
+    btn.classList.add('btn--primary');
+    btn.classList.remove('btn--outline');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDERERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function renderActivity() {
+  const timeline = document.getElementById('activityTimeline');
+  // TODO: Build real activity feed from posts/repos
+  timeline.innerHTML = `
+    <div class="activity-item">
+      <div class="activity-item__time">Now</div>
+      <div class="activity-item__content">Viewing profile</div>
+    </div>
+  `;
+}
+
 function renderRepos(repos) {
-  if (repos.length === 0) {
-    repoGrid.innerHTML = `<p class="text-dim">No public repositories</p>`;
+  const user = auth.getUser();
+  const pinnedIds = (user?.pinnedRepos || []);
+  
+  // Separate pinned and unpinned
+  const pinnedRepos = repos.filter(r => pinnedIds.includes(r.id || r.name));
+  const otherRepos = repos.filter(r => !pinnedIds.includes(r.id || r.name));
+  
+  const pinnedContainer = document.getElementById('pinnedReposContainer');
+  const pinnedGrid = document.getElementById('pinnedRepoGrid');
+  const mainGrid = document.getElementById('repoGrid');
+  
+  // Render Pinned
+  if (pinnedRepos.length > 0) {
+    pinnedContainer.style.display = 'block';
+    pinnedGrid.innerHTML = pinnedRepos.map(repo => renderRepoCard(repo, true)).join('');
+  } else {
+    pinnedContainer.style.display = 'none';
+  }
+  
+  // Render All/Others
+  if (otherRepos.length === 0 && pinnedRepos.length === 0) {
+    mainGrid.innerHTML = `<p class="text-dim">No public repositories</p>`;
     return;
   }
   
-  repoGrid.innerHTML = repos.map(repo => {
-    const langClass = repo.language?.toLowerCase().replace(/[^a-z]/g, '') || 'unknown';
-    return `
-      <a href="${repo.url}" class="repo-card" target="_blank" rel="noopener">
+  mainGrid.innerHTML = otherRepos.map(repo => renderRepoCard(repo, false)).join('');
+  
+  // Bind actions
+  bindRepoActions();
+}
+
+function renderRepoCard(repo, isPinned) {
+  const langClass = repo.language?.toLowerCase().replace(/[^a-z]/g, '') || 'unknown';
+  const isOwner = auth.getUser()?.username === (repo.owner.login || repo.owner);
+  // Check if starred (saved)
+  const isStarred = (auth.getUser()?.starredRepos || []).some(r => (r.id === repo.id) || (r.name === repo.name));
+  
+  return `
+    <div class="repo-card">
+      <a href="${repo.url}" class="repo-card__link" target="_blank" rel="noopener">
         <div class="repo-card__header">
           <span class="repo-card__icon">📦</span>
           <span class="repo-card__name">${repo.name}</span>
         </div>
         <p class="repo-card__desc">${repo.description || 'No description'}</p>
-        <div class="repo-card__footer">
-          <span class="repo-card__lang">
-            <span class="repo-card__lang-dot repo-card__lang-dot--${langClass}"></span>
-            ${repo.language || 'Unknown'}
-          </span>
-          <span>⭐ ${(repo.stars || 0).toLocaleString()}</span>
-        </div>
       </a>
-    `;
-  }).join('');
+      <div class="repo-card__footer">
+        <span class="repo-card__lang">
+          <span class="repo-card__lang-dot repo-card__lang-dot--${langClass}"></span>
+          ${repo.language || 'Unknown'}
+        </span>
+        <div class="repo-card__actions">
+           <span>⭐ ${(repo.stars || 0).toLocaleString()}</span>
+           
+           <button class="btn btn--icon btn--sm ${isStarred ? 'text-copper' : ''}" 
+             data-action="star" 
+             data-repo='${JSON.stringify(repo).replace(/'/g, "&#39;")}'
+             title="${isStarred ? 'Unstar' : 'Star'}">
+             ${isStarred ? '★' : '☆'}
+           </button>
+           
+           ${isOwner ? `
+             <button class="btn btn--icon btn--sm ${isPinned ? 'text-copper' : ''}" 
+               data-action="pin" 
+               data-repo-id="${repo.id || repo.name}"
+               title="${isPinned ? 'Unpin' : 'Pin'}">
+               ${isPinned ? '📌' : '📍'}
+             </button>
+           ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bindRepoActions() {
+  document.querySelectorAll('[data-action="pin"]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      togglePin(btn.dataset.repoId);
+    };
+  });
+  
+  document.querySelectorAll('[data-action="star"]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const repo = JSON.parse(btn.dataset.repo.replace(/&#39;/g, "'"));
+      toggleStar(repo);
+    };
+  });
+}
+
+function togglePin(repoId) {
+  const user = auth.getUser();
+  if (!user) return;
+  
+  let pinned = user.pinnedRepos || [];
+  // Use loose comparison for ID vs Name support
+  if (pinned.includes(Number(repoId)) || pinned.includes(String(repoId))) {
+    pinned = pinned.filter(p => String(p) !== String(repoId));
+  } else {
+    pinned.push(repoId);
+  }
+  
+  // Optimistic update
+  user.pinnedRepos = pinned;
+  // Re-render
+  // We need the full repo list... let's assume we can get it from DOM or just reload?
+  // Reloading profile is safer to ensure consistency
+  auth.updateProfile({ pinnedRepos: pinned });
+  window.location.reload(); // Simple reload for now
+}
+
+function toggleStar(repo) {
+  const user = auth.getUser();
+  if (!user) return;
+  
+  let starred = user.starredRepos || [];
+  const exists = starred.find(r => (r.id === repo.id) || (r.name === repo.name));
+  
+  if (exists) {
+    starred = starred.filter(r => (r.id !== repo.id) && (r.name !== repo.name));
+  } else {
+    starred.push({
+      id: repo.id,
+      name: repo.name,
+      owner: repo.owner,
+      description: repo.description,
+      language: repo.language,
+      stars: repo.stars,
+      url: repo.url // Ensure URL is saved
+    });
+    
+    // TRENDING ALGORTHM - Signal the backend
+    fetch('/.netlify/functions/track-trending', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.accessToken}` // Assuming auth.getUser() returns object with accessToken
+      },
+      body: JSON.stringify({
+        repo: {
+          id: repo.id,
+          name: repo.name,
+          description: repo.description,
+          url: repo.url
+        },
+        action: 'star'
+      })
+    }).catch(e => console.warn('Trending signal failed', e));
+  }
+  
+  // Also track unstar?
+  if (exists) {
+     fetch('/.netlify/functions/track-trending', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.accessToken}`
+      },
+      body: JSON.stringify({
+        repo: { id: repo.id, name: repo.name },
+        action: 'unstar'
+      })
+    }).catch(e => console.warn('Trending signal failed', e));
+  }
+  
+  auth.updateProfile({ starredRepos: starred });
+  
+  // Update button state immediately
+  const btns = document.querySelectorAll(`[data-action="star"]`);
+  btns.forEach(b => {
+     // Naive check
+     if (b.dataset.repo.includes(repo.name)) {
+        b.innerHTML = exists ? '☆' : '★';
+        b.classList.toggle('text-copper');
+     }
+  });
+  
+  // If we are on starred tab, reload
+  if (document.querySelector('[data-tab="starred"].profile-tab--active')) {
+     renderStarredRepos();
+  }
+}
+
+function renderStarredRepos() {
+  const user = auth.getUser();
+  const starred = user?.starredRepos || [];
+  const grid = document.getElementById('starredRepoGrid');
+  
+  if (starred.length === 0) {
+    grid.innerHTML = `<p class="text-dim">No starred repositories</p>`;
+    return;
+  }
+  
+  grid.innerHTML = starred.map(repo => renderRepoCard(repo, false)).join('');
+  bindRepoActions();
 }
 
 function renderUserPosts(userIdOrName) {
-  // Filter posts by userId OR username to be safe
   const allPosts = posts.getPosts();
+  // Filter by userId corresponding to the profile being viewed through userIdOrName
+  // Note: userIdOrName can be ID or username. We check both.
   const userPosts = allPosts.filter(p => p.userId === userIdOrName || p.username === userIdOrName);
   
   const postsContainer = document.getElementById('userPosts');
   
   if (userPosts.length === 0) {
-    postsContainer.innerHTML = `<p class="text-dim" style="text-align: center;">No posts yet</p>`;
+    postsContainer.innerHTML = `<p class="text-dim" style="text-align: center; padding: var(--sp-6);">No posts yet.</p>`;
     return;
   }
   
@@ -262,18 +497,11 @@ function renderUserPosts(userIdOrName) {
           ${post.repo.stars ? `<span>⭐ ${post.repo.stars}</span>` : ''}
         </a>
       ` : ''}
+      <div class="post-card__actions">
+         <span class="text-dim">❤️ ${post.reactions?.fire || 0}</span>
+      </div>
     </div>
   `).join('');
-}
-
-function escapeHtml(unsafe) {
-  if (!unsafe) return '';
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -292,10 +520,12 @@ function enableEditMode() {
       padding: var(--sp-1) var(--sp-2) !important;
       border-radius: var(--radius);
       cursor: text;
+      background: rgba(255,255,255,0.05);
     }
     .editable:focus {
       outline: none;
       background: var(--surface);
+      border-style: solid !important;
     }
     .edit-actions {
       display: flex;
@@ -306,22 +536,30 @@ function enableEditMode() {
   document.head.appendChild(style);
   
   // Make fields editable
-  profileName.contentEditable = true;
-  profileName.classList.add('editable');
-  
-  profileBio.contentEditable = true;
-  profileBio.classList.add('editable');
+  const fields = [profileName, profileBio, profileLocation ? profileLocation.querySelector('span') : null];
+  fields.forEach(f => {
+    if(f) {
+        f.contentEditable = true;
+        f.classList.add('editable');
+    }
+  });
   
   // Change button to Save
   followBtn.textContent = 'Save Changes';
-  followBtn.onclick = saveProfile;
+  followBtn.classList.add('btn--primary');
+  
+  // Remove existing click listeners by cloning
+  const newBtn = followBtn.cloneNode(true);
+  followBtn.parentNode.replaceChild(newBtn, followBtn);
+  
+  newBtn.onclick = saveProfile;
   
   // Add cancel button
   const cancelBtn = document.createElement('button');
   cancelBtn.className = 'btn';
   cancelBtn.textContent = 'Cancel';
   cancelBtn.onclick = () => window.location.href = '/pillars/community/profile.html';
-  followBtn.parentElement.appendChild(cancelBtn);
+  newBtn.parentNode.appendChild(cancelBtn);
 }
 
 function saveProfile() {
@@ -344,6 +582,7 @@ function setupTabs() {
   const tabs = document.querySelectorAll('.profile-tab');
   const sections = {
     repos: document.getElementById('reposSection'),
+    starred: document.getElementById('starredSection'),
     activity: document.getElementById('activitySection'),
     posts: document.getElementById('postsSection')
   };
@@ -357,6 +596,10 @@ function setupTabs() {
       Object.entries(sections).forEach(([name, section]) => {
         if (section) section.style.display = name === tabName ? 'block' : 'none';
       });
+      
+      if (tabName === 'starred') {
+        renderStarredRepos();
+      }
     });
   });
 }

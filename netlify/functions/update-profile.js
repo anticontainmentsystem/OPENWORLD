@@ -51,6 +51,8 @@ export async function handler(event, context) {
       location: updates.location || profile.location,
       avatar: updates.avatar || profile.avatar || githubUser.avatar_url,
       website: updates.website || profile.website,
+      pinnedRepos: updates.pinnedRepos || profile.pinnedRepos || [],
+      starredRepos: updates.starredRepos || profile.starredRepos || [],
       // System generated fields
       followers: profile.followers || 0,
       following: profile.following || 0,

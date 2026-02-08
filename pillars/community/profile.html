@@ -73,14 +73,27 @@
   <main class="profile-content">
     <div class="profile-tabs">
       <button class="profile-tab profile-tab--active" data-tab="repos">Repositories</button>
+      <button class="profile-tab" data-tab="starred">Starred</button>
       <button class="profile-tab" data-tab="activity">Activity</button>
       <button class="profile-tab" data-tab="posts">Posts</button>
     </div>
     
     <!-- Repos -->
     <section class="profile-section" id="reposSection">
-      <h2 class="profile-section__title">Pinned Repositories</h2>
+      <h2 class="profile-section__title">Repositories</h2>
+      <div id="pinnedReposContainer" style="display:none; margin-bottom: var(--sp-5);">
+          <h3 class="text-dim" style="font-size: 0.9rem; margin-bottom: var(--sp-2);">Pinned</h3>
+          <div class="repo-grid" id="pinnedRepoGrid"></div>
+      </div>
+      
+      <h3 class="text-dim" style="font-size: 0.9rem; margin-bottom: var(--sp-2);">All Repositories</h3>
       <div class="repo-grid" id="repoGrid"></div>
+    </section>
+
+    <!-- Starred -->
+    <section class="profile-section" id="starredSection" style="display: none;">
+      <h2 class="profile-section__title">Starred Repositories</h2>
+      <div class="repo-grid" id="starredRepoGrid"></div>
     </section>
     
     <!-- Activity -->

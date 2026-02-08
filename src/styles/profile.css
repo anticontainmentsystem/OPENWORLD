@@ -256,7 +256,11 @@
 }
 
 /* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .profile-header {
+    padding-top: 20px; /* Reduced padding */
+  }
+
   .profile-header__inner {
     flex-direction: column;
     align-items: center;
@@ -266,21 +270,45 @@
   .profile-header__avatar {
     width: 80px;
     height: 80px;
+    margin-bottom: var(--sp-2);
   }
   
   .profile-header__meta {
     justify-content: center;
+    font-size: 0.75rem;
   }
   
   .profile-header__stats {
     justify-content: center;
+    width: 100%;
+    justify-content: space-around; /* Better spacing for stats */
+    padding: var(--sp-2) 0;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
   }
   
   .profile-header__actions {
     justify-content: center;
+    width: 100%;
+    flex-direction: column; /* Stack buttons on very small screens? */
+  }
+
+  .profile-header__actions .btn {
+    width: 100%;
+    justify-content: center;
   }
   
+  .profile-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -var(--sp-4) var(--sp-4); /* Negative margin to bleed to edge */
+    padding: 0 var(--sp-4);
+    border-bottom: 1px solid var(--border);
+  }
+
   .repo-grid {
     grid-template-columns: 1fr;
   }
 }
+

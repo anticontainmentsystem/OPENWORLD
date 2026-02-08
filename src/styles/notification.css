@@ -1,0 +1,134 @@
+/* Notification Dropdown */
+.notification-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-right: var(--sp-3);
+}
+
+.notification-trigger {
+  position: relative;
+  font-size: 1.2rem;
+  padding: var(--sp-2);
+  color: var(--text-muted);
+}
+
+.notification-trigger:hover {
+  color: var(--text-main);
+  background: var(--surface-hover);
+  border-radius: 50%;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--copper-500);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-body);
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 100%;
+  right: -80px; /* Center under bell roughly */
+  width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  display: none;
+  overflow: hidden;
+  margin-top: var(--sp-2);
+}
+
+.notification-dropdown.show {
+  display: block;
+  animation: slideDown 0.2s ease-out;
+}
+
+.notification-header {
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.notification-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background: var(--surface-hover);
+}
+
+.notification-item.unread {
+  background: rgba(184, 115, 51, 0.1); /* Subtle copper tint */
+}
+
+.notification-item.unread:hover {
+  background: rgba(184, 115, 51, 0.15);
+}
+
+.notification-icon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-text {
+  font-size: 0.9rem;
+  margin: 0 0 var(--sp-1) 0;
+  line-height: 1.4;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .notification-dropdown {
+    position: fixed;
+    top: 60px;
+    left: var(--sp-2);
+    right: var(--sp-2);
+    width: auto;
+  }
+}

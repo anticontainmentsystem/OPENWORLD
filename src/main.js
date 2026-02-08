@@ -3,6 +3,13 @@
  */
 
 import { auth } from './services/auth.js';
+import { NotificationDropdown } from './components/NotificationDropdown.js'; // Added
+
+// Add styles
+const link = document.createElement('link');
+link.rel = 'stylesheet';
+link.href = '/src/styles/notification.css';
+document.head.appendChild(link);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // AUTH
@@ -21,11 +28,12 @@ function updateAuthUI(user) {
   
   if (user) {
     userBadge.innerHTML = `
+      <div id="notificationContainer" style="display:inline-block;"></div>
       <button class="user-badge__trigger" id="userBadgeTrigger">
         <img src="${user.avatar}" alt="${user.name}" class="user-badge__avatar">
         <span class="user-badge__name">${user.username}</span>
       </button>
-      <div class="user-badge__dropdown">
+      <div class="user-badge__dropdown" id="userDropdown">
         <div class="user-badge__dropdown-header">
           <div class="user-badge__dropdown-name">${user.name}</div>
           <div class="user-badge__dropdown-username">@${user.username}</div>
@@ -39,11 +47,28 @@ function updateAuthUI(user) {
       </div>
     `;
     
-    document.getElementById('userBadgeTrigger').addEventListener('click', (e) => {
+    // Init Notification Dropdown
+    const notifContainer = userBadge.querySelector('#notificationContainer');
+    new NotificationDropdown(notifContainer);
+
+    const trigger = userBadge.querySelector('#userBadgeTrigger');
+    const dropdown = userBadge.querySelector('#userDropdown');
+    
+    trigger.addEventListener('click', (e) => {
       e.stopPropagation();
-      userBadge.classList.toggle('user-badge--open');
+      dropdown.classList.toggle('user-badge__dropdown--open'); // Changed class to match CSS if exists, or use standard 'show'
     });
     
+    // Check core.css for dropdown class. usually it's just display none/block. 
+    // main.js used user-badge--open on parent. Let's stick to that for the User Dropdown
+    // But wait, the previous code toggled userBadge class. 
+    // Let's revert to the exact previous logic for user dropdown but keep notif separate.
+    
+    trigger.onclick = (e) => {
+       e.stopPropagation();
+       userBadge.classList.toggle('user-badge--open');
+    };
+
     document.addEventListener('click', () => userBadge.classList.remove('user-badge--open'));
     document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
   } else {

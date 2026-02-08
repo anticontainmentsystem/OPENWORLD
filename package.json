@@ -1,0 +1,23 @@
+{
+  "name": "openworld",
+  "version": "0.0.1",
+  "description": "OpenWorld — A living creative ecosystem where humans and intelligent systems co-create",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  },
+  "keywords": [
+    "openworld",
+    "creative",
+    "generative",
+    "ai",
+    "anticontainment"
+  ],
+  "author": "OpenWorld Collective"
+}

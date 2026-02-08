@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — OpenWorld</title>
+  <meta name="description" content="User profile on OpenWorld">
+  
+  <link rel="stylesheet" href="/src/styles/core.css">
+  <link rel="stylesheet" href="/src/styles/profile.css">
+</head>
+<body>
+  
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="container nav__inner">
+      <a href="/" class="nav__logo">
+        <span class="nav__mark">◈</span> OpenWorld
+      </a>
+      <ul class="nav__links">
+        <li><a href="/">Portal</a></li>
+        <li><a href="/pillars/community/">Community</a></li>
+      </ul>
+      <div class="user-badge" id="userBadge"></div>
+    </div>
+  </nav>
+
+  <!-- Profile Header -->
+  <header class="profile-header">
+    <div class="profile-header__inner">
+      <img src="" alt="" class="profile-header__avatar" id="profileAvatar">
+      
+      <div class="profile-header__info">
+        <h1 class="profile-header__name" id="profileName"></h1>
+        <div class="profile-header__username" id="profileUsername"></div>
+        <p class="profile-header__bio" id="profileBio"></p>
+        
+        <div class="profile-header__meta">
+          <span class="profile-header__meta-item" id="profileLocation">📍 <span></span></span>
+          <span class="profile-header__meta-item">📅 Joined <span id="profileJoined"></span></span>
+        </div>
+        
+        <div class="profile-header__stats">
+          <div class="profile-header__stat">
+            <div class="profile-header__stat-value" id="statFollowers">0</div>
+            <div class="profile-header__stat-label">Followers</div>
+          </div>
+          <div class="profile-header__stat">
+            <div class="profile-header__stat-value" id="statFollowing">0</div>
+            <div class="profile-header__stat-label">Following</div>
+          </div>
+          <div class="profile-header__stat">
+            <div class="profile-header__stat-value" id="statRepos">0</div>
+            <div class="profile-header__stat-label">Repos</div>
+          </div>
+        </div>
+        
+        <div class="profile-header__actions" id="profileActions">
+          <button class="btn btn--primary" id="followBtn">Follow</button>
+          <a href="#" class="btn" id="githubLink" target="_blank" rel="noopener">
+            <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Profile Content -->
+  <main class="profile-content">
+    <div class="profile-tabs">
+      <button class="profile-tab profile-tab--active" data-tab="repos">Repositories</button>
+      <button class="profile-tab" data-tab="activity">Activity</button>
+      <button class="profile-tab" data-tab="posts">Posts</button>
+    </div>
+    
+    <!-- Repos -->
+    <section class="profile-section" id="reposSection">
+      <h2 class="profile-section__title">Pinned Repositories</h2>
+      <div class="repo-grid" id="repoGrid"></div>
+    </section>
+    
+    <!-- Activity -->
+    <section class="profile-section" id="activitySection" style="display: none;">
+      <h2 class="profile-section__title">Recent Activity</h2>
+      <div class="activity-timeline" id="activityTimeline">
+        <div class="activity-item">
+          <div class="activity-item__time">Today</div>
+          <div class="activity-item__content">Pushed 3 commits to <span class="activity-item__repo">soundscape-engine</span></div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-item__time">Yesterday</div>
+          <div class="activity-item__content">Created repository <span class="activity-item__repo">creative-lab</span></div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Posts -->
+    <section class="profile-section" id="postsSection" style="display: none;">
+      <h2 class="profile-section__title">Posts</h2>
+      <div id="userPosts">
+        <p class="text-dim" style="text-align: center; padding: var(--sp-4);">No posts yet.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/src/profile.js"></script>
+</body>
+</html>

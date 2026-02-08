@@ -1,0 +1,440 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OPENWORLD DESIGN SYSTEM
+   Copper + Moss Green | 3px corners | Minimal spacing
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Copper Palette */
+  --copper-100: #fdf4ef;
+  --copper-200: #e8c4a8;
+  --copper-300: #d4a574;
+  --copper-400: #c4885c;
+  --copper-500: #b87333;
+  --copper-600: #9a5f28;
+  --copper-700: #7a4a1f;
+  
+  /* Moss Green Palette */
+  --moss-100: #f0f4f1;
+  --moss-200: #c8d9c5;
+  --moss-300: #8faa85;
+  --moss-400: #6b8b61;
+  --moss-500: #4a6741;
+  --moss-600: #3d5636;
+  --moss-700: #2e4128;
+  
+  /* Neutrals */
+  --bg: #0c0c0a;
+  --surface: #141412;
+  --border: #252520;
+  --text: #e8e6e0;
+  --text-dim: #8a8880;
+  --text-muted: #5a5850;
+  
+  /* Semantic */
+  --accent: var(--copper-500);
+  --accent-hover: var(--copper-400);
+  --secondary: var(--moss-500);
+  --secondary-hover: var(--moss-400);
+  
+  /* Spacing - Minimal */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  
+  /* Typography */
+  --font: system-ui, -apple-system, sans-serif;
+  --font-mono: 'SF Mono', 'Consolas', monospace;
+  
+  /* Radius - 3px only */
+  --radius: 3px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LAYOUT
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--sp-4);
+}
+
+.section {
+  padding: var(--sp-6) 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   NAVIGATION
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: var(--sp-2) 0;
+}
+
+.nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.nav__mark {
+  color: var(--accent);
+}
+
+.nav__links {
+  display: flex;
+  gap: var(--sp-4);
+  list-style: none;
+}
+
+.nav__links a {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.nav__links a:hover {
+  color: var(--text);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   BUTTONS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-3);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.btn--primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn--secondary {
+  background: var(--secondary);
+  border-color: var(--secondary);
+  color: var(--bg);
+}
+
+.btn--secondary:hover {
+  background: var(--secondary-hover);
+  border-color: var(--secondary-hover);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CARDS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--sp-3);
+}
+
+.card:hover {
+  border-color: var(--text-muted);
+}
+
+.card--link {
+  display: block;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TAGS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.tag {
+  display: inline-flex;
+  padding: 2px var(--sp-2);
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+}
+
+.tag--copper {
+  background: var(--copper-700);
+  color: var(--copper-200);
+}
+
+.tag--moss {
+  background: var(--moss-700);
+  color: var(--moss-200);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TYPOGRAPHY
+   ───────────────────────────────────────────────────────────────────────────── */
+
+h1, h2, h3, h4 {
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1rem; }
+
+p {
+  color: var(--text-dim);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   INPUTS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+input, textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--sp-2);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   USER BADGE
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.user-badge {
+  position: relative;
+}
+
+.user-badge__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.user-badge__trigger:hover {
+  border-color: var(--border);
+}
+
+.user-badge__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.user-badge__name {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.user-badge__dropdown {
+  position: absolute;
+  top: calc(100% + var(--sp-1));
+  right: 0;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: all 0.15s ease;
+  z-index: 1000;
+}
+
+.user-badge--open .user-badge__dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-badge__dropdown-header {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.user-badge__dropdown-name {
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.user-badge__dropdown-username {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.user-badge__dropdown-menu {
+  list-style: none;
+  padding: var(--sp-1);
+}
+
+.user-badge__dropdown-item {
+  display: block;
+  padding: var(--sp-1) var(--sp-2);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  border-radius: var(--radius);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.user-badge__dropdown-item:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.user-badge__dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--sp-1) 0;
+}
+
+.user-badge__login {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.user-badge__login:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.github-icon {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   UTILITIES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.text-copper { color: var(--copper-500); }
+.text-moss { color: var(--moss-500); }
+.text-dim { color: var(--text-dim); }
+.text-muted { color: var(--text-muted); }
+
+.mt-1 { margin-top: var(--sp-1); }
+.mt-2 { margin-top: var(--sp-2); }
+.mt-3 { margin-top: var(--sp-3); }
+.mt-4 { margin-top: var(--sp-4); }
+
+.mb-1 { margin-bottom: var(--sp-1); }
+.mb-2 { margin-bottom: var(--sp-2); }
+.mb-3 { margin-bottom: var(--sp-3); }
+.mb-4 { margin-bottom: var(--sp-4); }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: var(--sp-1); }
+.gap-2 { gap: var(--sp-2); }
+.gap-3 { gap: var(--sp-3); }
+.gap-4 { gap: var(--sp-4); }
+
+.grid { display: grid; }

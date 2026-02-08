@@ -1,0 +1,192 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OPENWORLD PILLAR PAGE STYLES
+   Shared styles for individual pillar pages
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PILLAR HERO
+   ───────────────────────────────────────────────────────────────────────────── */
+.pillar-hero {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  padding-top: 120px;
+  padding-bottom: var(--ow-space-xl);
+  background: linear-gradient(
+    180deg,
+    var(--ow-void) 0%,
+    var(--ow-abyss) 100%
+  );
+  border-bottom: 1px solid var(--ow-elevated);
+  position: relative;
+  overflow: hidden;
+}
+
+.pillar-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 600px;
+  height: 600px;
+  background: var(--pillar-color, var(--ow-pulse));
+  filter: blur(150px);
+  opacity: 0.15;
+  border-radius: 50%;
+  transform: translate(30%, -30%);
+}
+
+.pillar-hero__icon {
+  font-size: 4rem;
+  margin-bottom: var(--ow-space-lg);
+}
+
+.pillar-hero__title {
+  font-size: clamp(3rem, 8vw, 5rem);
+  margin-bottom: var(--ow-space-md);
+  color: var(--pillar-color, var(--ow-pulse));
+}
+
+.pillar-hero__tagline {
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  color: var(--ow-text-secondary);
+  max-width: 600px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PILLAR INTRO
+   ───────────────────────────────────────────────────────────────────────────── */
+.pillar-intro {
+  margin-bottom: var(--ow-space-2xl);
+}
+
+.pillar-intro h2 {
+  margin-bottom: var(--ow-space-md);
+}
+
+.pillar-intro > p {
+  font-size: 1.15rem;
+  max-width: 700px;
+  margin-bottom: var(--ow-space-xl);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PILLAR PRINCIPLES
+   ───────────────────────────────────────────────────────────────────────────── */
+.pillar-principles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--ow-space-lg);
+}
+
+.pillar-principle {
+  padding: var(--ow-space-lg);
+  background: var(--ow-surface);
+  border: 1px solid var(--ow-elevated);
+  border-radius: var(--ow-radius-lg);
+  transition: all var(--ow-duration-normal) var(--ow-ease-smooth);
+}
+
+.pillar-principle:hover {
+  border-color: var(--pillar-color, var(--ow-pulse));
+  transform: translateY(-4px);
+}
+
+.pillar-principle h3 {
+  color: var(--pillar-color, var(--ow-pulse));
+  margin-bottom: var(--ow-space-sm);
+}
+
+.pillar-principle p {
+  font-size: 0.95rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PILLAR PROJECTS SECTION
+   ───────────────────────────────────────────────────────────────────────────── */
+.pillar-projects {
+  padding-top: var(--ow-space-xl);
+  border-top: 1px solid var(--ow-elevated);
+}
+
+.pillar-projects h2 {
+  margin-bottom: var(--ow-space-md);
+}
+
+.ow-text-muted {
+  color: var(--ow-text-muted);
+  font-style: italic;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   NAV OVERRIDE FOR PILLAR PAGES
+   ───────────────────────────────────────────────────────────────────────────── */
+.ow-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: var(--ow-space-md) 0;
+  background: linear-gradient(to bottom, var(--ow-void), transparent);
+  backdrop-filter: blur(10px);
+}
+
+.ow-nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ow-nav__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--ow-space-sm);
+  font-family: var(--ow-font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--ow-text-primary);
+  text-decoration: none;
+}
+
+.ow-nav__logo-mark {
+  color: var(--ow-pulse);
+  font-size: 1.5rem;
+}
+
+.ow-nav__links {
+  display: flex;
+  gap: var(--ow-space-lg);
+  list-style: none;
+}
+
+.ow-nav__links a {
+  color: var(--ow-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--ow-duration-fast) var(--ow-ease-smooth);
+}
+
+.ow-nav__links a:hover {
+  color: var(--ow-text-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .pillar-hero {
+    padding-top: 100px;
+    text-align: center;
+  }
+  
+  .pillar-hero__tagline {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .pillar-principles {
+    grid-template-columns: 1fr;
+  }
+}

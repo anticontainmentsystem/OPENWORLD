@@ -1,0 +1,173 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OPENWORLD USER BADGE
+   Site-wide authentication component for navigation
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   USER BADGE CONTAINER
+   ───────────────────────────────────────────────────────────────────────────── */
+.user-badge {
+  position: relative;
+}
+
+.user-badge__trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--ow-space-sm);
+  padding: var(--ow-space-xs) var(--ow-space-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--ow-radius-full);
+  cursor: pointer;
+  transition: all var(--ow-duration-fast) var(--ow-ease-smooth);
+}
+
+.user-badge__trigger:hover {
+  background: var(--ow-surface);
+  border-color: var(--ow-elevated);
+}
+
+.user-badge__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ow-radius-full);
+  object-fit: cover;
+  border: 2px solid var(--ow-elevated);
+  transition: border-color var(--ow-duration-fast) var(--ow-ease-smooth);
+}
+
+.user-badge__trigger:hover .user-badge__avatar {
+  border-color: var(--ow-pulse);
+}
+
+.user-badge__name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ow-text-primary);
+}
+
+.user-badge__chevron {
+  font-size: 0.7rem;
+  color: var(--ow-text-muted);
+  transition: transform var(--ow-duration-fast) var(--ow-ease-smooth);
+}
+
+.user-badge--open .user-badge__chevron {
+  transform: rotate(180deg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DROPDOWN MENU
+   ───────────────────────────────────────────────────────────────────────────── */
+.user-badge__dropdown {
+  position: absolute;
+  top: calc(100% + var(--ow-space-sm));
+  right: 0;
+  min-width: 220px;
+  background: var(--ow-surface);
+  border: 1px solid var(--ow-elevated);
+  border-radius: var(--ow-radius-lg);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all var(--ow-duration-normal) var(--ow-ease-smooth);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.user-badge--open .user-badge__dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-badge__dropdown-header {
+  padding: var(--ow-space-md);
+  border-bottom: 1px solid var(--ow-elevated);
+}
+
+.user-badge__dropdown-name {
+  font-weight: 600;
+  color: var(--ow-text-primary);
+}
+
+.user-badge__dropdown-username {
+  font-size: 0.85rem;
+  color: var(--ow-text-muted);
+}
+
+.user-badge__dropdown-menu {
+  list-style: none;
+  padding: var(--ow-space-sm);
+}
+
+.user-badge__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ow-space-md);
+  padding: var(--ow-space-sm) var(--ow-space-md);
+  color: var(--ow-text-secondary);
+  text-decoration: none;
+  border-radius: var(--ow-radius-md);
+  transition: all var(--ow-duration-fast) var(--ow-ease-smooth);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  font-size: 0.9rem;
+  font-family: var(--ow-font-body);
+}
+
+.user-badge__dropdown-item:hover {
+  background: var(--ow-elevated);
+  color: var(--ow-text-primary);
+}
+
+.user-badge__dropdown-item--danger:hover {
+  color: var(--ow-ember);
+}
+
+.user-badge__dropdown-divider {
+  height: 1px;
+  background: var(--ow-elevated);
+  margin: var(--ow-space-sm) 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LOGIN BUTTON (SIGNED OUT STATE)
+   ───────────────────────────────────────────────────────────────────────────── */
+.user-badge__login {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ow-space-sm);
+  padding: var(--ow-space-sm) var(--ow-space-md);
+  background: transparent;
+  border: 1px solid var(--ow-elevated);
+  color: var(--ow-text-primary);
+  font-family: var(--ow-font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: var(--ow-radius-full);
+  cursor: pointer;
+  transition: all var(--ow-duration-normal) var(--ow-ease-smooth);
+}
+
+.user-badge__login:hover {
+  border-color: var(--ow-pulse);
+  color: var(--ow-pulse);
+  box-shadow: var(--ow-glow-pulse);
+}
+
+.user-badge__login-icon {
+  font-size: 1.1rem;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   GITHUB ICON SVG
+   ───────────────────────────────────────────────────────────────────────────── */
+.github-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}

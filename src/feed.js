@@ -510,7 +510,7 @@ function setupEventListeners() {
   });
 }
 
-function handlePostActions(e) {
+async function handlePostActions(e) {
   // Copy code button
   const copyBtn = e.target.closest('.code-block__copy');
   if (copyBtn) {
@@ -529,12 +529,18 @@ function handlePostActions(e) {
   const postId = action.dataset.postId;
   
   if (actionType === 'react' && postId) {
-    const updatedPost = posts.reactToPost(postId, 'fire');
+    const updatedPost = await posts.reactToPost(postId, 'fire');
     if (updatedPost) {
       const countEl = action.querySelector('span');
-      const total = Object.values(updatedPost.reactions).reduce((a, b) => a + b, 0);
+      const total = Object.values(updatedPost.reactions || { fire: 0 }).reduce((a, b) => a + b, 0);
       countEl.textContent = total;
-      action.classList.add('post-card__action--active');
+      
+      // Toggle active state based on response
+      if (updatedPost.hasReacted) {
+        action.classList.add('post-card__action--active');
+      } else {
+        action.classList.remove('post-card__action--active');
+      }
     }
   }
   

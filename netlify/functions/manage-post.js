@@ -60,14 +60,35 @@ export async function handler(event, context) {
         return { statusCode: 404, body: JSON.stringify({ error: 'Post not found' }) };
       }
       
-      if (post.reactions[reactionType] !== undefined) {
-        post.reactions[reactionType]++;
+      // Initialize reactions if not exists
+      if (!post.reactions) {
+        post.reactions = { fire: 0 };
+      }
+      
+      // Initialize reactedBy tracking if not exists
+      if (!post.reactedBy) {
+        post.reactedBy = {};
+      }
+      if (!post.reactedBy[reactionType]) {
+        post.reactedBy[reactionType] = [];
+      }
+      
+      const userId = String(user.id);
+      const hasReacted = post.reactedBy[reactionType].includes(userId);
+      
+      if (hasReacted) {
+        // Remove reaction (toggle off)
+        post.reactions[reactionType] = Math.max(0, (post.reactions[reactionType] || 0) - 1);
+        post.reactedBy[reactionType] = post.reactedBy[reactionType].filter(id => id !== userId);
+        message = `Remove ${reactionType} from post ${postId} via OpenWorld Proxy`;
+      } else {
+        // Add reaction (toggle on)
+        post.reactions[reactionType] = (post.reactions[reactionType] || 0) + 1;
+        post.reactedBy[reactionType].push(userId);
+        message = `Add ${reactionType} to post ${postId} via OpenWorld Proxy`;
         
-        // Notify Post Owner
-        // We know user (actor) from token. post has username/userId.
-        // Avoid self-notification
+        // Notify Post Owner (only on add, not remove)
         if (post.username !== user.login) {
-          // Dynamic import of helper
           import('./utils/notifications.js').then(({ createNotification }) => {
              createNotification(post.username, 'reaction', {
                username: user.login,
@@ -80,7 +101,20 @@ export async function handler(event, context) {
           }).catch(console.error);
         }
       }
-      message = `React to post ${postId} via OpenWorld Proxy`;
+      
+      // Write data before returning
+      await writeData('posts.json', posts, sha, message);
+      
+      // Return whether user has now reacted
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          success: true,
+          post: { id: post.id, reactions: post.reactions },
+          hasReacted: !hasReacted
+        })
+      };
+      
       
     } else {
       return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action' }) };

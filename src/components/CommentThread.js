@@ -32,8 +32,14 @@ export class CommentThread {
         ${user ? `
           <div class="comment-thread__composer">
             <img src="${user.avatar}" alt="${user.username}" class="comment-thread__avatar">
-            <input type="text" class="comment-thread__input" id="commentInput" placeholder="Add a comment..." maxlength="500">
+            <div class="comment-thread__input-wrap">
+              <input type="text" class="comment-thread__input" id="commentInput" placeholder="Add a comment..." maxlength="500">
+              <button class="comment-thread__attach" id="attachBtn" title="Attach code or repo">📎</button>
+            </div>
             <button class="btn btn--primary btn--sm" id="submitComment">Post</button>
+          </div>
+          <div class="comment-thread__attachments" id="attachPanel" style="display: none;">
+            <small class="text-dim">Attachments coming soon!</small>
           </div>
         ` : `
           <div class="comment-thread__login">

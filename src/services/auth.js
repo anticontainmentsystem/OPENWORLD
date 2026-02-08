@@ -16,14 +16,20 @@ class AuthService {
   loadUser() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      console.log('[Auth] Loading user from localStorage:', stored ? 'Found data' : 'No data');
       const user = stored ? JSON.parse(stored) : null;
+      
       if (user) {
+        if (!user.accessToken) {
+          console.warn('[Auth] User data missing valid access token. Clearing session.');
+          localStorage.removeItem(STORAGE_KEY);
+          return null;
+        }
         console.log('[Auth] User loaded:', user.username);
       }
       return user;
     } catch (e) {
       console.error('[Auth] Error loading user:', e);
+      localStorage.removeItem(STORAGE_KEY);
       return null;
     }
   }

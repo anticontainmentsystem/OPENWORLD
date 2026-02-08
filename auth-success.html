@@ -100,6 +100,11 @@
           return;
         }
         
+        if (!user.accessToken) {
+          showError('Login incomplete: Missing access token', 'Please try logging in again.');
+          return;
+        }
+        
         // Store in localStorage
         var userJson = JSON.stringify(user);
         localStorage.setItem('openworld_user', userJson);

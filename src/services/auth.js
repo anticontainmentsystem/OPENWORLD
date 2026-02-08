@@ -15,13 +15,20 @@ class AuthService {
   loadUser() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : null;
-    } catch {
+      console.log('[Auth] Loading user from localStorage:', stored ? 'Found data' : 'No data');
+      const user = stored ? JSON.parse(stored) : null;
+      if (user) {
+        console.log('[Auth] User loaded:', user.username);
+      }
+      return user;
+    } catch (e) {
+      console.error('[Auth] Error loading user:', e);
       return null;
     }
   }
 
   getUser() {
+    console.log('[Auth] getUser called, user:', this.user ? this.user.username : 'null');
     return this.user;
   }
 

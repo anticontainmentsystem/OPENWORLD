@@ -109,12 +109,13 @@ export class ActivityPicker {
     if (e.type === 'PushEvent') {
        icon = '📝';
        title = `Pushed to ${e.repo.name}`;
-       const count = e.payload.commits.length;
-       desc = `${count} commit${count===1?'':'s'}: ${e.payload.commits[0]?.message || 'No message'}`;
+       const commits = e.payload.commits || [];
+       const count = commits.length;
+       desc = `${count} commit${count===1?'':'s'}: ${commits[0]?.message || 'No message'}`;
        payloadData = {
            type: 'commit',
            repo: e.repo,
-           commit: e.payload.commits[0], // Select latest commit for now
+           commit: commits[0] || {}, 
            head: e.payload.head
        };
     } else if (e.type === 'IssuesEvent') {

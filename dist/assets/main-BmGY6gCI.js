@@ -1,4 +1,4 @@
-import{a as i}from"./auth-CDsf9gWV.js";import{N as d}from"./NotificationDropdown-D2MEmX-R.js";const r=document.createElement("link");r.rel="stylesheet";r.href="/src/styles/notification.css";document.head.appendChild(r);const t=document.getElementById("userBadge");function l(){t&&(i.subscribe(a),a(i.getUser()))}function a(e){if(t)if(e){t.innerHTML=`
+import{a as i}from"./auth-qTptiIUO.js";import{N as d}from"./NotificationDropdown-BsIzgKD3.js";const r=document.createElement("link");r.rel="stylesheet";r.href="/src/styles/notification.css";document.head.appendChild(r);const t=document.getElementById("userBadge");function l(){t&&(i.subscribe(a),a(i.getUser()))}function a(e){if(t)if(e){t.innerHTML=`
       <button class="user-badge__trigger" id="userBadgeTrigger">
         <img src="${e.avatar}" alt="${e.name}" class="user-badge__avatar">
         <span class="user-badge__name">${e.username}</span>

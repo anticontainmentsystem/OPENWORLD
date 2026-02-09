@@ -11,6 +11,10 @@ import { MediaPicker } from './components/MediaPicker.js';
 import { CommentThread } from './components/CommentThread.js';
 import { renderPostCard, escapeHtml, convertGitHubUrl } from './components/PostCard.js';
 import { ConfirmModal } from './components/ConfirmModal.js';
+import { initCursorTrail } from './components/CursorTrail.js';
+
+// Initialize Easter Eggs
+initCursorTrail();
 
 // Add modal styles
 const modalLink = document.createElement('link');

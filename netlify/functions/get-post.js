@@ -44,20 +44,22 @@ exports.handler = async (event, context) => {
     if (timestamp) {
         const shardPath = getShardPath(timestamp);
         try {
-            const posts = await getFile(shardPath);
-            post = posts.find(p => String(p.id) === String(id));
+            const file = await readData(shardPath);
+            if (file) {
+                const posts = file.data;
+                post = posts.find(p => String(p.id) === String(id));
+            }
         } catch (e) {
             console.log(`[GetPost] Shard ${shardPath} not found.`);
         }
     }
     
-    // 2. Fallback: Legacy posts.json (if validation fails or not found in shard)
-    // We keep reading posts.json for now as a fallback for old IDs we can't parse
+    // 2. Fallback: Legacy posts.json
     if (!post) {
         try {
-             const result = await getFile('posts.json');
-             if (result) {
-                 post = result.find(p => String(p.id) === String(id));
+             const file = await readData('posts.json');
+             if (file) {
+                 post = file.data.find(p => String(p.id) === String(id));
              }
         } catch (e) {}
     }

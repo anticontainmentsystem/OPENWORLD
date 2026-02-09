@@ -39,14 +39,25 @@ export const handler = async (event, context) => {
     const { action, postId, reactionType } = JSON.parse(event.body);
 
     // 2. Read Current Data
-    const result = await readData('posts.json');
-    if (!result) {
-      return { statusCode: 404, body: JSON.stringify({ error: 'Data store not found' }) };
-    }
-    
-    let posts = result.data;
-    let sha = result.sha;
+    // Determine shard path for the post
+    const timestamp = getTimestampFromId(postId);
+    const shardPath = getShardPath(timestamp);
+
+    // Load specific shard
+    let posts = [];
+    let sha = null;
     let message = '';
+    try {
+        const file = await readData(shardPath);
+        if (file) {
+            posts = file.data;
+            sha = file.sha;
+        }
+    } catch (e) {
+        // If file doesn't exist, posts remains empty, sha remains null.
+        // This is fine for new posts or if the shard is genuinely empty.
+        console.warn(`Shard file ${shardPath} not found or error reading: ${e.message}`);
+    }
 
     // 3. Process Action
     // 3. Process Action

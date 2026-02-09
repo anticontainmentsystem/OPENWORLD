@@ -1,4 +1,4 @@
-import { getFile } from './utils/gh.js';
+import { readData } from './utils/gh.js';
 
 // Helper: Determine shard path from date
 function getShardPath(date = new Date()) {
@@ -28,7 +28,8 @@ export const handler = async (event, context) => {
     let posts = [];
     
     try {
-        posts = await getFile(shardPath);
+        const file = await readData(shardPath);
+        posts = file ? file.data : [];
     } catch (e) {
         // If current month doesn't exist, try previous month? 
         // Or just return empty (start of month)
@@ -44,7 +45,8 @@ export const handler = async (event, context) => {
         const prevShardPath = getShardPath(now);
         console.log(`[GetFeed] Fetching previous shard: ${prevShardPath}`);
         try {
-            const prevPosts = await getFile(prevShardPath);
+            const prevFile = await readData(prevShardPath);
+            const prevPosts = prevFile ? prevFile.data : [];
             posts = [...posts, ...prevPosts];
         } catch (e) {
             // Ignore if prev doesn't exist

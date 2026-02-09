@@ -31,12 +31,24 @@ export const handler = async (event, context) => {
   }
 
   try {
-    const userRes = await fetch('https://api.github.com/user', {
-      headers: { Authorization: `Bearer ${context.clientContext?.user?.token?.access_token || ''}` } 
-    });
-    // Simplified: Netlify Function "user" object from context is usually sufficient
     // We already have 'user' from context.clientContext above.
+    
+    let payload;
+    try {
+      payload = JSON.parse(event.body);
+    } catch (e) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
+    }
 
+    const { content, media, type, repo, code, activity } = payload;
+    const hasMedia = media && media.url;
+
+    // Basic Validation
+    if (!content && !hasMedia && !repo && !code) {
+       return { statusCode: 400, body: JSON.stringify({ error: 'Post must have content or attachment' }) };
+    }
+
+    if (hasMedia) {
       // Basic URL validation
       if (!media.url.startsWith('http') && !media.url.startsWith('github://')) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Invalid media URL' }) };

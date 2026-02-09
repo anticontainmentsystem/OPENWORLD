@@ -19,6 +19,7 @@ export class CommentThread {
     this.codeEditor = null;
     this.ghBrowser = null;
     this.userRepos = [];
+    this.replyTo = null; // { id, username }
     
     this.render();
     this.bindEvents();
@@ -26,8 +27,12 @@ export class CommentThread {
 
   render() {
     const user = auth.getUser();
-    const commentsHtml = this.comments.length > 0 
-      ? this.comments.map(c => this.renderComment(c)).join('')
+    
+    // Sort logic (if needed) - current simplistic
+    const topLevelComments = this.comments.filter(c => !c.parentId);
+    
+    const commentsHtml = topLevelComments.length > 0 
+      ? topLevelComments.map(c => this.renderCommentChain(c)).join('')
       : '<p class="text-dim text-center" style="padding: var(--sp-3);">No comments yet</p>';
 
     this.container.innerHTML = `
@@ -39,24 +44,30 @@ export class CommentThread {
           ${commentsHtml}
         </div>
         ${user ? `
-          <div class="comment-thread__composer">
-            <img src="${user.avatar}" alt="${user.username}" class="comment-thread__avatar">
-            <div class="comment-thread__input-wrap">
-              <input type="text" class="comment-thread__input" id="commentInput" placeholder="Add a comment..." maxlength="500">
-              <button class="comment-thread__attach" id="attachBtn" title="Attach code or repo">📎</button>
+          <div class="comment-thread__composer-wrap">
+            <div id="replyingToBadge" class="replying-to-badge" style="display: none;">
+              <span>Replying to <strong id="replyingToName"></strong></span>
+              <button class="replying-to-close" id="cancelReply">×</button>
             </div>
-            <button class="btn btn--primary btn--sm" id="submitComment">Post</button>
-          </div>
-          <div class="comment-thread__attachments" id="attachPanel" style="display: none;">
-            <div class="attach-tabs">
-              <button class="attach-tab attach-tab--active" data-tab="code">💻 Code</button>
-              <button class="attach-tab" data-tab="repo">📦 Repo</button>
+            <div class="comment-thread__composer">
+              <img src="${user.avatar}" alt="${user.username}" class="comment-thread__avatar">
+              <div class="comment-thread__input-wrap">
+                <input type="text" class="comment-thread__input" id="commentInput" placeholder="Add a comment..." maxlength="500">
+                <button class="comment-thread__attach" id="attachBtn" title="Attach code or repo">📎</button>
+              </div>
+              <button class="btn btn--primary btn--sm" id="submitComment">Post</button>
             </div>
-            <div class="attach-content" id="attachContent">
-              <!-- Code Editor or Repo Browser will be injected here -->
-            </div>
-            <div class="attach-preview" id="attachPreview" style="display: none;">
-              <!-- Preview of selected attachment -->
+            <div class="comment-thread__attachments" id="attachPanel" style="display: none;">
+              <div class="attach-tabs">
+                <button class="attach-tab attach-tab--active" data-tab="code">💻 Code</button>
+                <button class="attach-tab" data-tab="repo">📦 Repo</button>
+              </div>
+              <div class="attach-content" id="attachContent">
+                <!-- Code Editor or Repo Browser will be injected here -->
+              </div>
+              <div class="attach-preview" id="attachPreview" style="display: none;">
+                <!-- Preview of selected attachment -->
+              </div>
             </div>
           </div>
         ` : `
@@ -66,6 +77,19 @@ export class CommentThread {
         `}
       </div>
     `;
+  }
+
+  renderCommentChain(comment) {
+    let html = this.renderComment(comment);
+    
+    // Find replies
+    const replies = this.comments.filter(c => c.parentId === comment.id);
+    if (replies.length > 0) {
+      html += `<div class="comment-replies">`;
+      html += replies.map(r => this.renderCommentChain(r)).join(''); // Recursive for deep nesting
+      html += `</div>`;
+    }
+    return html;
   }
 
   renderComment(comment) {
@@ -81,6 +105,9 @@ export class CommentThread {
           </div>
           <p class="comment-item__content">${this.escapeHtml(comment.content)}</p>
           ${comment.attachments ? this.renderAttachments(comment.attachments) : ''}
+          <div class="comment-actions">
+            <button class="comment-action" data-reply-id="${comment.id}" data-reply-username="${comment.username}">Reply</button>
+          </div>
         </div>
       </div>
     `;
@@ -164,7 +191,50 @@ export class CommentThread {
         }
       };
     });
+    
+    // Reply actions (delegation)
+    const list = this.container.querySelector('#commentList');
+    if (list) {
+      list.onclick = (e) => {
+        const btn = e.target.closest('[data-reply-id]');
+        if (btn) {
+          const id = btn.dataset.replyId;
+          const username = btn.dataset.replyUsername;
+          this.initiateReply(id, username);
+        }
+      };
+    }
+    
+    // Cancel reply
+    const cancelReply = this.container.querySelector('#cancelReply');
+    if (cancelReply) {
+      cancelReply.onclick = () => this.cancelReply();
+    }
   }
+  
+  initiateReply(id, username) {
+    this.replyTo = { id, username };
+    const badge = this.container.querySelector('#replyingToBadge');
+    const nameEl = this.container.querySelector('#replyingToName');
+    const input = this.container.querySelector('#commentInput');
+    
+    if (badge && nameEl && input) {
+      badge.style.display = 'flex';
+      nameEl.textContent = `@${username}`;
+      input.placeholder = `Replying to @${username}...`;
+      input.focus();
+    }
+  }
+  
+  cancelReply() {
+    this.replyTo = null;
+    const badge = this.container.querySelector('#replyingToBadge');
+    const input = this.container.querySelector('#commentInput');
+    
+    if (badge && input) {
+      badge.style.display = 'none';
+      input.placeholder = 'Add a comment...';
+    }
 
   showCodeTab() {
     const content = this.container.querySelector('#attachContent');
@@ -283,17 +353,16 @@ export class CommentThread {
       this.post.id, 
       content, 
       this.currentAttachment, 
-      token
+      token,
+      this.replyTo ? this.replyTo.id : null
     ).then(newComment => {
       // Add to local list
       this.comments.push(newComment);
       
       // Re-render
-      const list = this.container.querySelector('#commentList');
-      const emptyMsg = list.querySelector('.text-dim');
-      if (emptyMsg) emptyMsg.remove();
-      
-      list.insertAdjacentHTML('beforeend', this.renderComment(newComment));
+      // Re-render full list to handle nesting
+      this.render();
+      this.bindEvents(); // Rebind since we nuked HTML
       
       // Update header count
       const header = this.container.querySelector('.comment-thread__header span');

@@ -44,7 +44,7 @@ export async function handler(event, context) {
       };
     }
     
-    const { postId, content, attachments } = JSON.parse(event.body);
+    const { postId, content, attachments, parentId } = JSON.parse(event.body);
     
     // 3. Validate Input
     if (!postId || !content?.trim()) {
@@ -69,6 +69,7 @@ export async function handler(event, context) {
     // 6. Create Comment
     const comment = {
       id: `c-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      parentId: parentId || null,
       userId: user.id,
       username: user.login,
       userAvatar: user.avatar_url,

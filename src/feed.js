@@ -27,6 +27,8 @@ const userStats = document.getElementById('userStats');
 let userRepos = [];
 let selectedRepo = null;
 let selectedCode = null; // { code: string, language: string }
+let selectedActivity = null;
+let selectedMedia = null; // { type: 'image'|'video', url: string }
 let codeEditor = null;
 
 // Initialize
@@ -446,6 +448,7 @@ function setupEventListeners() {
   tools[0]?.addEventListener('click', showRepoPicker);
   tools[1]?.addEventListener('click', showCodeEditor);
   tools[2]?.addEventListener('click', showActivityPicker); // Activity picker
+  tools[3]?.addEventListener('click', showMediaInput);
   
   // Load more editor
   
@@ -535,6 +538,59 @@ async function handlePostActions(e) {
   }
 }
 
+function showMediaInput() {
+  const url = prompt('Enter Image or Video URL (http... or github://...)\n\nSupported: jpg, png, gif, mp4, webm');
+  if (!url) return;
+  
+  // Auto-detect type
+  let type = 'image';
+  if (url.match(/\.(mp4|webm|mov)$/i)) {
+    type = 'video';
+  }
+  
+  selectedMedia = { type, url };
+  updateSelectedMedia();
+}
+
+function updateSelectedMedia() {
+  let container = document.getElementById('selectedMediaContainer');
+  
+  if (selectedMedia) {
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'selectedMediaContainer';
+      
+      // Insert after other attachments if they exist, or after header
+      const lastAttachment = document.getElementById('selectedActivityContainer') || document.getElementById('selectedCodeContainer') || document.getElementById('selectedRepoContainer');
+      const header = composer.querySelector('.composer__header');
+      
+      if (lastAttachment) lastAttachment.after(container);
+      else header.after(container);
+    }
+    
+    const icon = selectedMedia.type === 'video' ? '🎥' : '🖼️';
+    container.innerHTML = `
+      <div class="selected-code">
+        <div style="font-size: 1.5rem; margin-right: 12px;">${icon}</div>
+        <div class="selected-code__info">
+          <div class="selected-code__lang">${selectedMedia.type.toUpperCase()}</div>
+          <div class="selected-code__preview" style="font-family: var(--font-sans);">${escapeHtml(selectedMedia.url)}</div>
+        </div>
+        <div class="selected-code__actions">
+          <button class="selected-code__btn" id="removeMedia" title="Remove">×</button>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('removeMedia').addEventListener('click', () => {
+      selectedMedia = null;
+      container.remove();
+    });
+  } else if (container) {
+    container.remove();
+  }
+}
+
 async function handlePost() {
   const input = document.getElementById('composerInput');
   const postBtn = document.getElementById('postBtn');
@@ -561,7 +617,8 @@ async function handlePost() {
       type,
       repo: selectedRepo,
       code: selectedCode,
-      activity: selectedActivity
+      activity: selectedActivity,
+      media: selectedMedia
     });
     
     // Add to top of feed
@@ -578,15 +635,33 @@ async function handlePost() {
     selectedRepo = null;
     selectedCode = null;
     selectedActivity = null;
+    selectedMedia = null;
     document.getElementById('selectedRepoContainer')?.remove();
     document.getElementById('selectedCodeContainer')?.remove();
     document.getElementById('selectedActivityContainer')?.remove();
+    document.getElementById('selectedMediaContainer')?.remove();
     
     updatePostCount();
+    
+    // Cooldown
+    let cooldown = 4;
+    postBtn.disabled = true;
+    postBtn.textContent = `Wait ${cooldown}s`;
+    
+    const interval = setInterval(() => {
+      cooldown--;
+      if (cooldown <= 0) {
+        clearInterval(interval);
+        postBtn.disabled = false;
+        postBtn.textContent = 'Post';
+      } else {
+        postBtn.textContent = `Wait ${cooldown}s`;
+      }
+    }, 1000);
+    
   } catch (error) {
     console.error('[Feed] Post error:', error);
     alert('Failed to post: ' + error.message);
-  } finally {
     postBtn.disabled = false;
     postBtn.textContent = 'Post';
   }

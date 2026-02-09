@@ -304,7 +304,6 @@
   border-radius: 2px;
 }
 
-/* Github Browser Override for Comments */
 #repoBrowserMount .gh-browser {
   position: relative;
   top: auto;
@@ -315,4 +314,46 @@
   margin-top: 0;
   max-height: 300px;
   z-index: 1; /* reset z-index */
+}
+
+/* Threading */
+.comment-replies {
+  margin-left: 28px; /* Align with avatar center */
+  padding-left: var(--sp-2);
+  border-left: 2px solid var(--border-subtle);
+}
+
+.comment-action {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0;
+  margin-top: var(--sp-1);
+}
+
+.comment-action:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.replying-to-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-2);
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+
+.replying-to-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 1.2em;
+  line-height: 1;
 }

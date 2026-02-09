@@ -11,7 +11,7 @@
  * Validation: media requires either text OR attachment to prevent spam
  * Rate limit: 4 seconds between posts
  */
-const { readData, writeData } = require('./utils/gh');
+import { readData, writeData } from './utils/gh.js';
 
 // Helper: Determine shard path
 function getShardPath(date = new Date()) {
@@ -20,7 +20,7 @@ function getShardPath(date = new Date()) {
   return `data/posts/${year}/${month}.json`;
 }
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -31,6 +31,12 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    const userRes = await fetch('https://api.github.com/user', {
+      headers: { Authorization: `Bearer ${context.clientContext?.user?.token?.access_token || ''}` } 
+    });
+    // Simplified: Netlify Function "user" object from context is usually sufficient
+    // We already have 'user' from context.clientContext above.
+
       // Basic URL validation
       if (!media.url.startsWith('http') && !media.url.startsWith('github://')) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Invalid media URL' }) };

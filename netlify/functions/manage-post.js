@@ -2,7 +2,8 @@
  * Manage Post (Backend Proxy)
  * Handle Deletion and Reactions
  */
-const { getFile, writeData } = require('./utils/gh');
+const { getFile, writeData } = require('./utils/gh'); // Legacy line removal target if finding via content
+import { readData, writeData } from './utils/gh.js'; // Ensure correct import
 
 // Helper: Determine shard path from timestamp/ID
 function getShardPath(timestamp) {
@@ -22,7 +23,7 @@ function getTimestampFromId(postId) {
   return Date.now();
 }
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }

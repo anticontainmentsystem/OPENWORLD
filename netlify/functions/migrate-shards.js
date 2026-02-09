@@ -1,4 +1,4 @@
-const { readData, writeData } = require('./utils/gh');
+import { readData, writeData } from './utils/gh.js';
 
 // Helper: Determine shard path from date
 function getShardPath(dateStr) {
@@ -10,7 +10,7 @@ function getShardPath(dateStr) {
   return `data/posts/${year}/${month}.json`;
 }
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   // Security: Only allow POST or specific secret? 
   // For now, checks for admin token in header or just relies on obfuscation/Netlify auth if enabled.
   // We'll require a simple "confirm=true" query param to prevent accidental runs.

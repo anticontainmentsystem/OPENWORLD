@@ -469,8 +469,9 @@ class PostsService {
         // For now, let's NOT automatically inject new posts to avoid layout shifts.
         // We could show a "New posts available" toaster in the future.
         if (!this.posts.some(p => p.id === remotePost.id)) {
-             // Add to local data but don't render yet
+             // Add to local data AND render immediately (Real-time "Pop")
              this.posts.unshift(remotePost); 
+             this.notify();
         }
       }
     });

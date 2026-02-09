@@ -14,7 +14,7 @@ export const handler = async (event, context) => {
   // stale-while-revalidate=300: serve stale content for 5m while fetching new in background
   const headers = {
     'Content-Type': 'application/json',
-    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+    'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=10',
     'Access-Control-Allow-Origin': '*' // Allow CORS
   };
 

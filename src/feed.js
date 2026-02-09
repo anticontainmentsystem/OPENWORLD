@@ -720,9 +720,6 @@ async function handlePost() {
   const postBtn = document.getElementById('postBtn');
   const content = input.value.trim();
   
-  if (!content && !selectedCode) {
-  const content = document.getElementById('composerInput').value;
-  
   if (!content && !selectedRepo && !selectedCode && !selectedMedia) return;
   
   const type = selectedRepo || selectedCode ? 'project' : 'thought';
@@ -760,12 +757,4 @@ async function handlePost() {
   }
 }
 
-function updatePostCount() {
-  const user = auth.getUser();
-  if (user) {
-    document.getElementById('statPosts').textContent = posts.getPostsByUser(user.username || user.id).length;
-  }
-}
 
-// Console signature
-console.log('%c◈ OpenWorld Community', 'color: #b87333; font-size: 16px; font-weight: bold;');

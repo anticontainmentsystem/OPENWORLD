@@ -26,6 +26,23 @@
   margin-bottom: var(--sp-6);
 }
 
+.console-context {
+  display: flex;
+  gap: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.context-label {
+  color: var(--text-muted);
+  margin-right: var(--sp-1);
+}
+
 .console-controls {
   display: flex;
   gap: var(--sp-2);
@@ -179,14 +196,14 @@
 /* Presets Grid */
 .preset-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--sp-3);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--sp-4);
   margin-top: var(--sp-3);
 }
 
 .preset-card {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: var(--sp-2);
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -195,17 +212,78 @@
   cursor: pointer;
   text-align: left;
   transition: all 0.2s;
+  height: 100%;
 }
 
 .preset-card:hover {
   background: var(--surface-2);
   transform: translateY(-2px);
+  border-color: var(--text-muted);
+}
+
+.preset-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.preset-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .endpoint {
   font-family: var(--font-mono);
   font-size: 0.85rem;
   color: var(--text-main);
+  font-weight: 600;
+}
+
+/* Diagnostics */
+.diagnostics-area {
+  margin-bottom: var(--sp-3);
+}
+
+.diagnostic-card {
+  display: flex;
+  gap: var(--sp-3);
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  padding: var(--sp-3);
+  border-radius: var(--radius-sm);
+  color: var(--copper-200);
+}
+
+.diagnostic-icon {
+  font-size: 1.2rem;
+}
+
+.diagnostic-content strong {
+  display: block;
+  margin-bottom: var(--sp-1);
+  color: var(--copper-400);
+}
+
+.diagnostic-content p {
+  font-size: 0.9rem;
+  margin-bottom: var(--sp-2);
+  opacity: 0.9;
+}
+
+.diagnostic-btn {
+  background: var(--copper-600);
+  color: white;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.diagnostic-btn:hover {
+  background: var(--copper-500);
 }
 
 .method {

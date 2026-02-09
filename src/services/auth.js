@@ -150,9 +150,26 @@ class PostsService {
     return this.posts;
   }
 
-  async create(post) {
+  async create(postData) {
+    const user = auth.getUser();
+    if (!user) throw new Error('Not logged in');
+
+    const fullPost = {
+      ...postData,
+      id: 'post_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+      userId: user.id,
+      username: user.username,
+      userAvatar: user.avatar,
+      userName: user.name,
+      createdAt: new Date().toISOString(),
+      reactions: { fire: 0, heart: 0, rocket: 0 },
+      comments: 0
+    };
+
     const token = auth.getAccessToken();
-    const newPost = await postsAPI.create(post, token);
+    // postsAPI.create expects the full object now? Or does it expect data?
+    // Looking at previous createPost, postsAPI.create took (post, token).
+    const newPost = await postsAPI.create(fullPost, token);
     this.posts.unshift(newPost);
     this.notify();
     return newPost;

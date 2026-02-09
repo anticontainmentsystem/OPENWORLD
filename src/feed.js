@@ -756,6 +756,7 @@ async function handlePost() {
         code: selectedCode.value,
         name: selectedCode.name
       } : null,
+      activity: selectedActivity,
       media: selectedMedia
     };
 

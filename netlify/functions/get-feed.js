@@ -1,4 +1,4 @@
-const { getFile } = require('./utils/gh');
+import { getFile } from './utils/gh.js';
 
 // Helper: Determine shard path from date
 function getShardPath(date = new Date()) {
@@ -7,7 +7,7 @@ function getShardPath(date = new Date()) {
   return `data/posts/${year}/${month}.json`;
 }
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   // 1. Caching Headers (The "Genius" Part)
   // public: cacheable by CDN
   // s-maxage=60: shared cache (CDN) holds it for 60s

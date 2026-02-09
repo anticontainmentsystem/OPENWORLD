@@ -3,7 +3,7 @@
  * Real post creation with GitHub repo attachment and code blocks
  */
 
-import { auth, posts, formatRelativeTime } from './services/auth.js';
+import { auth, posts, formatRelativeTime, fetchUserRepos } from './services/auth.js';
 import { GithubBrowser } from './components/GithubBrowser.js';
 import { CodeEditor } from './components/code-editor.js';
 import { ActivityPicker } from './components/ActivityPicker.js';
@@ -141,6 +141,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   
   // Start real-time updates (polling every 4s)
+  posts.subscribe(() => {
+    updateAuthUI(auth.getUser());
+  });
   posts.startPolling(4000);
 });
 

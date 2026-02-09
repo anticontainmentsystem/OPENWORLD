@@ -665,6 +665,18 @@ async function handlePostActions(e) {
   }
 }
 
+function removeAttachment() {
+  selectedRepo = null;
+  selectedCode = null;
+  selectedActivity = null;
+  selectedMedia = null;
+  
+  updateSelectedRepo();
+  updateSelectedCode();
+  updateSelectedActivity();
+  updateSelectedMedia();
+}
+
 function showMediaInput() {
   const modal = document.createElement('div');
   document.body.appendChild(modal);

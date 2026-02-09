@@ -32,9 +32,9 @@ function createParticle(x, y) {
     x,
     y,
     life: 1,
-    decay: 0.02 + Math.random() * 0.02,
-    drift: (Math.random() - 0.5) * 2,
-    fall: Math.random() * 1.5
+    decay: 0.005 + Math.random() * 0.008,  // Much slower fade (was 0.02-0.04)
+    drift: (Math.random() - 0.5) * 4,       // More horizontal spread (was 2)
+    fall: 0.5 + Math.random() * 2           // More vertical fall (was 0-1.5)
   };
 }
 

@@ -16,6 +16,7 @@ export default defineConfig({
         knowledge: resolve(__dirname, "pillars/knowledge/index.html"),
         community: resolve(__dirname, "pillars/community/index.html"),
         profile: resolve(__dirname, "pillars/community/profile.html"),
+        developers: resolve(__dirname, "pillars/developers/index.html"),
         authSuccess: resolve(__dirname, "auth-success.html"),
         authError: resolve(__dirname, "auth-error.html"),
       },

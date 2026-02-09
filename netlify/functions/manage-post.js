@@ -2,29 +2,37 @@
  * Manage Post (Backend Proxy)
  * Handle Deletion and Reactions
  */
-import { readData, writeData } from './utils/gh.js';
+const { getFile, writeData } = require('./utils/gh');
 
-export async function handler(event, context) {
+// Helper: Determine shard path from timestamp/ID
+function getShardPath(timestamp) {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `data/posts/${year}/${month}.json`;
+}
+
+// Helper: Get timestamp from Post ID (format: post_TIMESTAMP_RANDOM)
+function getTimestampFromId(postId) {
+  if (!postId) return Date.now();
+  const parts = postId.split('_');
+  if (parts.length >= 2 && !isNaN(parts[1])) {
+    return parseInt(parts[1]);
+  }
+  return Date.now();
+}
+
+exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  // 1. Validate User
-  const authHeader = event.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
+  const { user } = context.clientContext || {};
+  if (!user) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
-  const userToken = authHeader.slice(7);
 
   try {
-    // Verify user
-    const userRes = await fetch('https://api.github.com/user', {
-      headers: { Authorization: `Bearer ${userToken}` }
-    });
-    
-    if (!userRes.ok) {
-      return { statusCode: 401, body: JSON.stringify({ error: 'Invalid user token' }) };
-    }
 
     const user = await userRes.json();
     const { action, postId, reactionType } = JSON.parse(event.body);
@@ -168,21 +176,19 @@ export async function handler(event, context) {
     }
 
     // 4. Write Back (System PAT)
-    await writeData('posts.json', posts, sha, message);
-
+    // Write back to the specific shard
+    await writeData(shardPath, posts, message);
+    
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true, post: posts.find(p => p.id === postId) })
+      body: JSON.stringify(action === 'delete' ? { success: true } : { post: posts.find(p => p.id === postId) || posts[0] }) // Return the updated post
     };
 
   } catch (error) {
     console.error('Manage Post Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
-        error: error.message,
-        stack: error.stack
-      })
+      body: JSON.stringify({ error: error.message })
     };
   }
 };

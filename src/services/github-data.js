@@ -120,102 +120,69 @@ export async function writeData(path, data, sha, token, message) {
  * Posts API
  */
 export const postsAPI = {
-  async getAll(token = null) {
+  async get() {
     try {
-      const result = await readData('posts.json', token);
-      return result?.data || [];
+      // Phase 2: Use Sharded/Cached Feed Endpoint
+      const response = await fetch('/.netlify/functions/get-feed');
+      if (!response.ok) throw new Error('Failed to fetch feed');
+      
+      const posts = await response.json();
+      return { data: posts, sha: null }; // SHA not needed for read-only feed
     } catch (error) {
-      console.error('Failed to load posts:', error);
-      return [];
+      console.error('[PostsAPI] Get error:', error);
+      return { data: [], sha: null };
     }
   },
 
-  /**
-   * Fetch a single post by ID (Secure Proxy)
-   */
-  async get(postId, token) {
-    try {
-      const response = await fetch(`/.netlify/functions/get-post?id=${postId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (error) {
-      console.error('[PostsAPI] Get error:', error);
-      return null;
-    }
-  },
-  
+  // Write (Queued + Optimistic)
   async create(post, token) {
-    // Backend Proxy: use Netlify Function
-    try {
-      const response = await fetch('/.netlify/functions/create-post', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(post)
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create post');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('[PostsAPI] Create error:', error);
-      throw error;
-    }
+     // 1. Prepare Optimistic Data
+     const tempId = `post_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+     const optimisticPost = {
+         id: tempId,
+         key: tempId, // for React
+         createdAt: new Date().toISOString(),
+         reactions: { fire: 0 },
+         replyCount: 0,
+         ...post
+     };
+     
+     // 2. Add to Queue (Background Sync)
+     // We pass the RAW post data needed by the function
+     queue.add({
+         type: 'create',
+         data: post
+     });
+     
+     // 3. Return immediately
+     return optimisticPost;
   },
   
   async delete(postId, username, token) {
-    try {
-      const response = await fetch('/.netlify/functions/manage-post', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: 'delete',
-          postId
-        })
+    queue.add({
+        type: 'delete',
+        data: { postId }
+    });
+    return true;
+  },
+  
+  async edit(postId, postData, token) {
+      // postData is { content, repo, media, activity, code }
+      queue.add({
+          type: 'edit',
+          data: { postId, ...postData }
       });
-      
-      const result = await response.json();
-      return !!result.success;
-    } catch (error) {
-      console.error('[PostsAPI] Delete error:', error);
-      return false;
-    }
+      return true;
   },
   
   async react(postId, reactionType, token) {
-    try {
-      const response = await fetch('/.netlify/functions/manage-post', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: 'react',
-          postId,
-          reactionType
-        })
-      });
-      
-      const result = await response.json();
-      if (!result.success) return null;
-
-      // Return full server response with toggle state
-      return result;
-    } catch (error) {
-      console.error('[PostsAPI] React error:', error);
-      return null;
-    }
+    queue.add({
+        type: 'react',
+        data: { postId, reactionType }
+    });
+    // Optimistic toggle return logic is handled by UI state usually, 
+    // but the caller expects a result. We'll return a fake success.
+    return { success: true }; 
   }
 };
 

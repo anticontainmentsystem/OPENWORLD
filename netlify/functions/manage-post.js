@@ -208,7 +208,7 @@ export const handler = async (event, context) => {
 
     // 4. Write Back (System PAT)
     // Write back to the specific shard
-    await writeData(shardPath, posts, message);
+    await writeData(shardPath, posts, sha, message);
     
     return {
       statusCode: 200,

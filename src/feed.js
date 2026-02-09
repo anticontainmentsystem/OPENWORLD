@@ -731,7 +731,8 @@ async function handlePost() {
   btn.textContent = isEditing ? 'Saving...' : 'Posting...';
   
   try {
-    updatePostCount();
+    // updatePostCount(); // Removed
+
     
     // Cooldown
     let cooldown = 4;

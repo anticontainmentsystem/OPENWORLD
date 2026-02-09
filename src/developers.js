@@ -17,7 +17,50 @@ const sendBtn = document.getElementById('sendBtn');
 const responseOutput = document.getElementById('responseOutput');
 const diagnosticsArea = document.getElementById('diagnosticsArea');
 
-// ... (init and listeners remain same)
+// Initialize
+function init() {
+  initAuth();
+  setupEventListeners();
+  updateBodyVisibility();
+}
+
+function setupEventListeners() {
+  // Method change toggles body visibility
+  methodSelect.addEventListener('change', updateBodyVisibility);
+
+  // Send Request
+  sendBtn.addEventListener('click', executeRequest);
+
+  // Presets
+  document.querySelectorAll('.preset-card').forEach(card => {
+    card.addEventListener('click', () => {
+      // populate logic
+      methodSelect.value = card.dataset.method;
+      const endpoint = card.dataset.endpoint;
+      endpointInput.value = endpoint;
+      
+      const bodyStr = card.dataset.body;
+      if (bodyStr) {
+        try {
+           bodyInput.value = JSON.stringify(JSON.parse(bodyStr), null, 2);
+        } catch(e) {
+           bodyInput.value = bodyStr;
+        }
+      }
+      
+      updateBodyVisibility();
+      
+      // Highlight effect
+      card.style.borderColor = 'var(--text-main)';
+      setTimeout(() => card.style.borderColor = '', 300);
+    });
+  });
+}
+
+function updateBodyVisibility() {
+  const method = methodSelect.value;
+  bodySection.style.display = (method === 'POST' || method === 'PUT') ? 'block' : 'none';
+}
 
 function initAuth() {
   auth.subscribe(user => {

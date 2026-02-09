@@ -24,6 +24,20 @@ commentStyles.rel = 'stylesheet';
 commentStyles.href = '/src/styles/comment.css';
 document.head.appendChild(commentStyles);
 
+// 🌍 Easter Egg - Hello OpenWorld!
+console.log(`
+%c  ╔═══════════════════════════════════════════╗
+  ║                                           ║
+  ║   🌍  H E L L O   O P E N W O R L D  🌍   ║
+  ║                                           ║
+  ║     Welcome, Developer.                   ║
+  ║     You found the secret console.         ║
+  ║                                           ║
+  ║     Build something amazing. ◈            ║
+  ║                                           ║
+  ╚═══════════════════════════════════════════╝
+`, 'color: #b87333; font-family: monospace; font-size: 12px;');
+
 // DOM Elements
 const userBadge = document.getElementById('userBadge');
 const composer = document.getElementById('composer');

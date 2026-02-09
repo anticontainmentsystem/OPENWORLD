@@ -45,7 +45,7 @@ export class ActivityPicker {
 
   render() {
     this.container.innerHTML = `
-      <div class="gh-browser">
+      <div class="gh-browser" style="position: relative; top: auto; left: auto; right: auto; width: 600px; max-width: 90%; margin: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
         <header class="gh-browser__header">
           <div class="gh-browser__title">
             <span>Select Activity</span>

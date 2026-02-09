@@ -21,6 +21,12 @@ export class GithubBrowser {
       this.userRepos = userRepos;
       this.onSelect = onSelect;
       this.onClose = onClose;
+      this.fileFilter = null;
+    }
+
+    if (this.container && this.container.constructor === Object) {
+        // Double check options again for filter
+        this.fileFilter = this.container.fileFilter || null;
     }
 
     if (!this.container) {
@@ -179,7 +185,14 @@ export class GithubBrowser {
       return a.type === 'dir' ? -1 : 1;
     });
 
-    contentEl.innerHTML = items.map(item => `
+    // Apply Filter (keep dirs, filter files)
+    const filteredItems = items.filter(item => {
+      if (item.type === 'dir') return true;
+      if (this.fileFilter) return this.fileFilter(item);
+      return true;
+    });
+
+    contentEl.innerHTML = filteredItems.map(item => `
       <div class="gh-item" data-item='${JSON.stringify(item).replace(/'/g, "&#39;")}' data-type="${item.type}">
         <div class="gh-item__icon">${item.type === 'dir' ? '📁' : '📄'}</div>
         <div class="gh-item__details">

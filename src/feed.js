@@ -7,6 +7,7 @@ import { auth, posts, fetchUserRepos, formatRelativeTime } from './services/auth
 import { GithubBrowser } from './components/GithubBrowser.js';
 import { CodeEditor, LANGUAGES } from './components/code-editor.js';
 import { ActivityPicker } from './components/ActivityPicker.js';
+import { MediaPicker } from './components/MediaPicker.js';
 import { CommentThread } from './components/CommentThread.js';
 import { renderPostCard, escapeHtml } from './components/PostCard.js';
 
@@ -540,17 +541,17 @@ async function handlePostActions(e) {
 }
 
 function showMediaInput() {
-  const url = prompt('Enter Image or Video URL (http... or github://...)\n\nSupported: jpg, png, gif, mp4, webm');
-  if (!url) return;
+  const modal = document.createElement('div');
+  document.body.appendChild(modal);
   
-  // Auto-detect type
-  let type = 'image';
-  if (url.match(/\.(mp4|webm|mov)$/i)) {
-    type = 'video';
-  }
-  
-  selectedMedia = { type, url };
-  updateSelectedMedia();
+  new MediaPicker(modal, {
+    onSelect: (media) => {
+      selectedMedia = media;
+      modal.remove();
+      updateSelectedMedia();
+    },
+    onClose: () => modal.remove()
+  });
 }
 
 function updateSelectedMedia() {

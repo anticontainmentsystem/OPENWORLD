@@ -1,0 +1,108 @@
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MEDIA PICKER
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.media-picker-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+  backdrop-filter: blur(4px);
+}
+
+.media-picker-content {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 90%;
+  max-width: 600px;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.media-picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.media-picker-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.media-picker-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.media-tab {
+  flex: 1;
+  padding: var(--sp-3);
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.media-tab:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.media-tab--active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.media-picker-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-3);
+}
+
+.media-preview-box {
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: var(--sp-3) 0;
+}
+
+.form-group {
+  margin-bottom: var(--sp-3);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--sp-1);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: var(--sp-2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+}

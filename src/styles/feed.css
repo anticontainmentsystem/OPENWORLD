@@ -126,11 +126,12 @@
 
 /* Composer */
 .composer {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: linear-gradient(135deg, #3a4a2a, #2a3a1a); /* Moss Green */
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
   padding: var(--sp-3);
   margin-bottom: var(--sp-3);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 .composer__header {

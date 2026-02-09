@@ -149,6 +149,47 @@ class PostsService {
     return this.posts;
   }
 
+  async create(post) {
+    const token = auth.getAccessToken();
+    const newPost = await postsAPI.create(post, token);
+    this.posts.unshift(newPost);
+    this.notify();
+    return newPost;
+  }
+
+  async edit(postId, postData) {
+    const token = auth.getAccessToken();
+    await postsAPI.edit(postId, postData, token);
+    
+    // Update local state
+    const index = this.posts.findIndex(p => p.id === postId);
+    if (index !== -1) {
+      this.posts[index] = { ...this.posts[index], ...postData };
+      this.notify();
+    }
+  }
+
+  async delete(postId, username) {
+    const token = auth.getAccessToken();
+    await postsAPI.delete(postId, username, token);
+    
+    // Update local state
+    this.posts = this.posts.filter(p => p.id !== postId);
+    this.notify();
+  }
+
+  // Subscribe to changes (for reactive UI)
+  subscribe(callback) {
+    this.listeners.push(callback);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== callback);
+    };
+  }
+
+  notify() {
+    this.listeners.forEach(cb => cb(this.posts));
+  }
+
   getPosts() {
     return this.posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }

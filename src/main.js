@@ -3,7 +3,11 @@
  */
 
 import { auth } from './services/auth.js';
-import { NotificationDropdown } from './components/NotificationDropdown.js'; // Added
+import { NotificationDropdown } from './components/NotificationDropdown.js';
+import { initCursorTrail } from './components/CursorTrail.js';
+
+// Initialize Easter Eggs
+initCursorTrail();
 
 // Add styles
 const link = document.createElement('link');

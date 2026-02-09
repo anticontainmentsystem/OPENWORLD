@@ -128,6 +128,18 @@ export const handler = async (event, context) => {
       post.deletedAt = null;
       message = `Restore post ${postId} by @${user.login}`;
 
+    } else if (action === 'purge') {
+      const postIndex = posts.findIndex(p => p.id === postId);
+      if (postIndex === -1) return { statusCode: 404, body: JSON.stringify({ error: 'Post not found' }) };
+      
+      const post = posts[postIndex];
+      // Double check ownership
+      if (String(post.userId) !== String(user.id)) return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
+      
+      // Permanent Delete: Remove from array completely
+      posts.splice(postIndex, 1);
+      message = `PURGE post ${postId} by @${user.login}`;
+
     } else if (action === 'react') {
       const post = posts.find(p => p.id === postId);
       if (!post) {

@@ -153,8 +153,11 @@ async function updateAuthUI(user) {
     userStats.style.display = 'block';
     
     document.getElementById('composerAvatar').src = user.avatar;
-    document.getElementById('statFollowing').textContent = user.following || 0;
-    document.getElementById('statPosts').textContent = posts.getPostsByUser(user.id).length;
+    const statFollowing = document.getElementById('statFollowing');
+    if (statFollowing) statFollowing.textContent = user.following || 0;
+    
+    const statPosts = document.getElementById('statPosts');
+    if (statPosts) statPosts.textContent = posts.getPostsByUser(user.id).length;
     
     // Load repos for picker
     userRepos = await fetchUserRepos();
@@ -748,7 +751,8 @@ async function handlePost() {
        await posts.edit(editingPostId, newPost);
        isEditing = false;
        editingPostId = null;
-       document.querySelector('.composer__title').textContent = 'New Post';
+       const titleEl = document.querySelector('.composer__title');
+       if (titleEl) titleEl.textContent = 'New Post';
        input.value = ''; // Input is cleared in cancelEditing, but ensuring here
        
        // Remove "Cancel" button if exists

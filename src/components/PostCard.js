@@ -89,8 +89,14 @@ export function renderPostCard(post) {
   
   const totalReactions = Object.values(post.reactions || { fire: 0 }).reduce((a, b) => a + b, 0);
   const currentUser = auth.getUser();
-  // Robust check: Ensure both are compared as strings to avoid Number vs String mismatch
+  // Robust check with Debug Login
   const isOwner = currentUser && String(post.userId) === String(currentUser.id);
+  
+  // DEBUG: Remove this after fixing
+  if (currentUser && !isOwner && post.username === currentUser.username) {
+     console.warn(`[Owner Mismatch] Post ${post.id}: post.userId=${post.userId} (${typeof post.userId}) vs user.id=${currentUser.id} (${typeof currentUser.id})`);
+  }
+
   const isDeleted = post.deleted;
 
   // Trash View State

@@ -23,12 +23,28 @@ export const handler = async (event, context) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const { user } = context.clientContext || {};
-  if (!user) {
-    return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
+  const { authorization } = event.headers;
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return { statusCode: 401, body: JSON.stringify({ error: 'Missing or invalid Authorization header' }) };
   }
+  
+  const token = authorization.split(' ')[1];
+  let user;
 
   try {
+    // Validate token with GitHub
+    const userRes = await fetch('https://api.github.com/user', {
+      headers: { Authorization: `Bearer ${token}` } 
+    });
+    
+    if (!userRes.ok) {
+       return { statusCode: 401, body: JSON.stringify({ error: 'Invalid GitHub Token' }) };
+    }
+    
+    user = await userRes.json();
+  } catch (error) {
+     return { statusCode: 401, body: JSON.stringify({ error: 'Authentication failed' }) };
+  }
     const payload = JSON.parse(event.body);
     const { action, postId } = payload;
 

@@ -127,10 +127,10 @@ export const postsAPI = {
       if (!response.ok) throw new Error('Failed to fetch feed');
       
       const posts = await response.json();
-      return { data: posts, sha: null }; // SHA not needed for read-only feed
+      return posts; // Return array directly (was wrapped in {data})
     } catch (error) {
       console.error('[PostsAPI] Get error:', error);
-      return { data: [], sha: null };
+      return [];
     }
   },
 

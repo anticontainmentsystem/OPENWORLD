@@ -161,7 +161,7 @@ class PostsService {
     );
   }
 
-  async createPost({ content, type = 'thought', repo = null, code = null }) {
+  async createPost({ content, type = 'thought', repo = null, code = null, activity = null, media = null }) {
     const user = auth.getUser();
     if (!user) throw new Error('Not logged in');
     
@@ -178,6 +178,8 @@ class PostsService {
       type,
       repo,
       code,
+      activity,
+      media,
       reactions: { fire: 0, heart: 0, rocket: 0 },
       comments: 0,
       createdAt: new Date().toISOString()

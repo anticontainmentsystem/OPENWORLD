@@ -731,7 +731,40 @@ async function handlePost() {
   btn.textContent = isEditing ? 'Saving...' : 'Posting...';
   
   try {
-    // updatePostCount(); // Removed
+    // Construct post data
+    const newPost = {
+      content,
+      type,
+      repo: selectedRepo,
+      code: selectedCode ? {
+        language: selectedCode.language,
+        code: selectedCode.value,
+        name: selectedCode.name
+      } : null,
+      media: selectedMedia
+    };
+
+    if (isEditing) {
+       await posts.edit(editingPostId, newPost);
+       isEditing = false;
+       editingPostId = null;
+       document.querySelector('.composer__title').textContent = 'New Post';
+       input.value = ''; // Input is cleared in cancelEditing, but ensuring here
+       
+       // Remove "Cancel" button if exists
+       const cancelBtn = document.querySelector('.composer__cancel');
+       if (cancelBtn) cancelBtn.remove();
+       
+    } else {
+       await posts.create(newPost);
+    }
+
+    // Reset Composer
+    input.value = '';
+    removeAttachment();
+    // Render immediately (optimistic update handled by store/API)
+    renderPosts();
+
 
     
     // Cooldown

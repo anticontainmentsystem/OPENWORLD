@@ -3,13 +3,20 @@
  * Real post creation with GitHub repo attachment and code blocks
  */
 
-import { auth, posts, fetchUserRepos, formatRelativeTime } from './services/auth.js';
+import { auth, posts, formatRelativeTime } from './services/auth.js';
 import { GithubBrowser } from './components/GithubBrowser.js';
-import { CodeEditor, LANGUAGES } from './components/code-editor.js';
+import { CodeEditor } from './components/CodeEditor.js';
 import { ActivityPicker } from './components/ActivityPicker.js';
 import { MediaPicker } from './components/MediaPicker.js';
 import { CommentThread } from './components/CommentThread.js';
-import { renderPostCard, escapeHtml } from './components/PostCard.js';
+import { renderPostCard, escapeHtml, convertGitHubUrl } from './components/PostCard.js';
+import { ConfirmModal } from './components/ConfirmModal.js';
+
+// Add modal styles
+const modalLink = document.createElement('link');
+modalLink.rel = 'stylesheet';
+modalLink.href = '/src/styles/modal.css';
+document.head.appendChild(modalLink);
 
 // Add comment styles
 const commentStyles = document.createElement('link');
@@ -607,16 +614,27 @@ async function handlePostActions(e) {
   }
   
   if (actionType === 'delete' && postId) {
-    if (confirm('Trash this post? You can restore it later.')) {
+    const confirmed = await ConfirmModal.show({
+      title: 'Trash this post?',
+      message: 'You can restore it later from your profile Trash tab.',
+      confirmText: 'Move to Trash',
+      theme: 'copper'
+    });
+    if (confirmed) {
       const user = auth.getUser();
       await posts.delete(postId, user ? user.username : null);
       renderPosts();
-      // updatePostCount(); // Removed
     }
   }
 
   if (actionType === 'restore' && postId) {
-    if (confirm('Restore this post?')) {
+    const confirmed = await ConfirmModal.show({
+      title: 'Restore this post?',
+      message: 'This post will reappear in your feed.',
+      confirmText: 'Restore',
+      theme: 'moss'
+    });
+    if (confirmed) {
       await posts.restorePost(postId);
       renderPosts();
       // updatePostCount(); // Removed

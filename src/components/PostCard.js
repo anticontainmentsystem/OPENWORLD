@@ -97,11 +97,6 @@ export function renderPostCard(post) {
     post.username === currentUser.username
   );
 
-  // DEBUG: Remove this after fixing
-  if (currentUser && !isOwner && post.username === currentUser.username) {
-     console.warn(`[Owner Mismatch] Post ${post.id}: post.userId=${post.userId} (${typeof post.userId}) vs user.id=${currentUser.id} (${typeof currentUser.id})`);
-  }
-
   const isDeleted = post.deleted;
 
   // Trash View State

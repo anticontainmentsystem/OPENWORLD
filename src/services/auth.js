@@ -191,8 +191,12 @@ class PostsService {
     const token = auth.getAccessToken();
     await postsAPI.delete(postId, username, token);
     
-    // Update local state
-    this.posts = this.posts.filter(p => p.id !== postId);
+    // Update local state: Soft delete (mark as deleted, don't remove)
+    const post = this.posts.find(p => p.id === postId);
+    if (post) {
+        post.deleted = true;
+        post.deletedAt = new Date().toISOString();
+    }
     this.notify();
   }
 

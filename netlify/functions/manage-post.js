@@ -59,21 +59,31 @@ export async function handler(event, context) {
       message = `Soft delete post ${postId} by @${user.login}`;
       
     } else if (action === 'edit') {
-       const { newContent } = JSON.parse(event.body);
+       const { content, repo, media, activity, code } = JSON.parse(event.body);
        const post = posts.find(p => p.id === postId);
        
        if (!post) return { statusCode: 404, body: JSON.stringify({ error: 'Post not found' }) };
        if (String(post.userId) !== String(user.id)) return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
        
-       // Create version snapshot
+       // Create version snapshot of the complete previous state
        if (!post.versions) post.versions = [];
        post.versions.push({
          timestamp: post.lastEditedAt || post.createdAt,
          content: post.content,
-         reason: 'Edit' // Could be passed in payload
+         repo: post.repo,
+         media: post.media,
+         activity: post.activity,
+         code: post.code,
+         reason: 'Edit' 
        });
        
-       post.content = newContent;
+       // Update all fields
+       post.content = content;
+       post.repo = repo;
+       post.media = media;
+       post.activity = activity;
+       post.code = code;
+       
        post.lastEditedAt = new Date().toISOString();
        message = `Edit post ${postId} by @${user.login}`;
        

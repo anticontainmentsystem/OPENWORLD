@@ -245,7 +245,7 @@ class PostsService {
     return false;
   }
 
-  async editPost(postId, newContent) {
+  async editPost(postId, { content, repo, media, activity, code }) {
     const user = auth.getUser();
     const token = auth.getAccessToken();
     if (!user || !token) throw new Error('Not logged in');
@@ -260,21 +260,36 @@ class PostsService {
          body: JSON.stringify({
            action: 'edit',
            postId,
-           newContent
+           content,
+           repo,
+           media,
+           activity,
+           code
          })
        });
        
        if (!res.ok) throw new Error('Failed to edit');
        
+       // Optimistic local update
        const post = this.posts.find(p => p.id === postId);
        if (post) {
          if (!post.versions) post.versions = [];
          post.versions.push({
            timestamp: post.lastEditedAt || post.createdAt,
            content: post.content,
+           repo: post.repo,
+           media: post.media,
+           activity: post.activity,
+           code: post.code,
            reason: 'Edit'
          });
-         post.content = newContent;
+         
+         post.content = content;
+         post.repo = repo;
+         post.media = media;
+         post.activity = activity;
+         post.code = code;
+         
          post.lastEditedAt = new Date().toISOString();
        }
        return true;

@@ -29,6 +29,86 @@ let userRepos = [];
 let selectedRepo = null;
 let selectedCode = null; // { code: string, language: string }
 let selectedActivity = null;
+
+// Edit Mode State
+let isEditing = false;
+let editingPostId = null;
+
+function startEditing(post) {
+  isEditing = true;
+  editingPostId = post.id;
+  
+  // 1. Populate Composer
+  const composerInput = document.getElementById('composerInput');
+  if (composerInput) {
+      composerInput.value = post.content || '';
+      composerInput.focus();
+  }
+  
+  // 2. Load Attachments
+  selectedRepo = post.repo;
+  selectedCode = post.code;
+  selectedActivity = post.activity;
+  selectedMedia = post.media;
+  
+  // 3. Update Previews
+  updateSelectedRepo();
+  updateSelectedCode();
+  updateSelectedActivity();
+  updateSelectedMedia();
+  
+  // 4. Update UI to "Edit Mode"
+  const postBtn = document.getElementById('postBtn');
+  if (postBtn) {
+      postBtn.textContent = 'Save Changes';
+      postBtn.classList.add('btn--moss'); // Visual cue
+  }
+  
+  // Add Cancel Button if not exists
+  let cancelBtn = document.getElementById('cancelEditBtn');
+  if (!cancelBtn) {
+      cancelBtn = document.createElement('button');
+      cancelBtn.id = 'cancelEditBtn';
+      cancelBtn.className = 'btn btn--text';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.style.marginRight = '8px';
+      cancelBtn.addEventListener('click', cancelEditing);
+      postBtn.parentNode.insertBefore(cancelBtn, postBtn);
+  }
+  
+  // Scroll to composer
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelEditing() {
+  isEditing = false;
+  editingPostId = null;
+  
+  // Clear Composer
+  const composerInput = document.getElementById('composerInput');
+  if (composerInput) composerInput.value = '';
+  
+  // Clear Attachments
+  selectedRepo = null;
+  selectedCode = null;
+  selectedActivity = null;
+  selectedMedia = null;
+  
+  updateSelectedRepo();
+  updateSelectedCode();
+  updateSelectedActivity();
+  updateSelectedMedia();
+  
+  // Reset UI
+  const postBtn = document.getElementById('postBtn');
+  if (postBtn) {
+      postBtn.textContent = 'Post';
+      postBtn.classList.remove('btn--moss');
+  }
+  
+  const cancelBtn = document.getElementById('cancelEditBtn');
+  if (cancelBtn) cancelBtn.remove();
+}
 let selectedMedia = null; // { type: 'image'|'video', url: string }
 let codeEditor = null;
 
@@ -542,11 +622,7 @@ async function handlePostActions(e) {
   if (actionType === 'edit' && postId) {
      const post = posts.getPosts().find(p => p.id === postId);
      if (post) {
-        const newContent = prompt('Edit your post:', post.content);
-        if (newContent !== null && newContent !== post.content) {
-          await posts.editPost(postId, newContent);
-          renderPosts();
-        }
+        startEditing(post);
      }
   }
 
@@ -645,50 +721,19 @@ async function handlePost() {
   const content = input.value.trim();
   
   if (!content && !selectedCode) {
-    input.focus();
-    return;
-  }
+  const content = document.getElementById('composerInput').value;
   
-  // Show loading state
-  postBtn.disabled = true;
-  postBtn.textContent = 'Posting...';
+  if (!content && !selectedRepo && !selectedCode && !selectedMedia) return;
   
-  // Determine post type
-  let type = 'thought';
-  if (selectedRepo) type = 'release';
-  else if (selectedCode) type = 'commit';
-  else if (selectedActivity) type = 'activity';
+  const type = selectedRepo || selectedCode ? 'project' : 'thought';
+  
+  // Disable button
+  const btn = document.getElementById('postBtn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = isEditing ? 'Saving...' : 'Posting...';
   
   try {
-    const newPost = await posts.createPost({
-      content,
-      type,
-      repo: selectedRepo,
-      code: selectedCode,
-      activity: selectedActivity,
-      media: selectedMedia
-    });
-    
-    // Add to top of feed
-    feedPosts.insertAdjacentHTML('afterbegin', renderPostCard(newPost));
-    
-    // Remove loading/empty state if present
-    const loadingOrEmpty = feedPosts.querySelector('.card');
-    if (loadingOrEmpty && (loadingOrEmpty.textContent.includes('No posts') || loadingOrEmpty.textContent.includes('Loading'))) {
-      loadingOrEmpty.remove();
-    }
-    
-    // Clear inputs
-    input.value = '';
-    selectedRepo = null;
-    selectedCode = null;
-    selectedActivity = null;
-    selectedMedia = null;
-    document.getElementById('selectedRepoContainer')?.remove();
-    document.getElementById('selectedCodeContainer')?.remove();
-    document.getElementById('selectedActivityContainer')?.remove();
-    document.getElementById('selectedMediaContainer')?.remove();
-    
     updatePostCount();
     
     // Cooldown

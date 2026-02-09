@@ -45,6 +45,8 @@ export const handler = async (event, context) => {
   } catch (error) {
      return { statusCode: 401, body: JSON.stringify({ error: 'Authentication failed' }) };
   }
+    
+  try {
     const payload = JSON.parse(event.body);
     const { action, postId } = payload;
 

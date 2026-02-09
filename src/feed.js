@@ -608,9 +608,10 @@ async function handlePostActions(e) {
   
   if (actionType === 'delete' && postId) {
     if (confirm('Trash this post? You can restore it later.')) {
-      await posts.deletePost(postId);
+      const user = auth.getUser();
+      await posts.delete(postId, user ? user.username : null);
       renderPosts();
-      updatePostCount();
+      // updatePostCount(); // Removed
     }
   }
 
@@ -618,7 +619,7 @@ async function handlePostActions(e) {
     if (confirm('Restore this post?')) {
       await posts.restorePost(postId);
       renderPosts();
-      updatePostCount();
+      // updatePostCount(); // Removed
     }
   }
 

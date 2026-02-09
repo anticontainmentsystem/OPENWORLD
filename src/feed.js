@@ -138,71 +138,7 @@ function renderLoginButton() {
 // POST RENDERING
 // ═══════════════════════════════════════════════════════════════════════════
 
-  if (actionType === 'delete' && postId) {
-    if (confirm('Delete this post? It can be restored from using the restore button.')) {
-      await posts.deletePost(postId); 
-      // Re-render to show it as deleted (or hide it if we filter)
-      // For immediate feedback, let's just re-render
-      renderPosts();
-      updatePostCount();
-    }
-  }
 
-  if (actionType === 'restore' && postId) {
-     if (confirm('Restore this post?')) {
-        await posts.restorePost(postId);
-        renderPosts();
-        updatePostCount();
-     }
-  }
-
-  if (actionType === 'edit' && postId) {
-     const post = posts.getPosts().find(p => p.id === postId);
-     if (!post) return;
-     
-     const newContent = prompt('Edit your post:', post.content);
-     if (newContent !== null && newContent !== post.content) {
-        await posts.editPost(postId, newContent);
-        renderPosts();
-     }
-  }
-
-  if (actionType === 'history' && postId) {
-     const post = posts.getPosts().find(p => p.id === postId);
-     if (!post || !post.versions) return;
-     
-     const history = post.versions.map(v => 
-        `${new Date(v.timestamp).toLocaleString()}:\n"${v.content}"`
-     ).join('\n\n-------------------\n\n');
-     
-     alert(`Edit History for Post:\n\n${history}`);
-  }
-  
-  // Comment toggle
-  if (actionType === 'comment' && postId) {
-    const container = document.getElementById(`comments-${postId}`);
-    if (!container) return;
-    
-    const isVisible = container.style.display !== 'none';
-    container.style.display = isVisible ? 'none' : 'block';
-    
-    // Initialize CommentThread if not already
-    if (!isVisible && !container.dataset.initialized) {
-      const post = posts.getPosts().find(p => p.id === postId);
-      if (post) {
-        new CommentThread(container, post, {
-          onCommentAdded: (newComment) => {
-            // Update the button count
-            const btn = document.querySelector(`[data-action="comment"][data-post-id="${postId}"] span`);
-            const currentCount = parseInt(btn.textContent) || 0;
-            btn.textContent = currentCount + 1;
-          }
-        });
-        container.dataset.initialized = 'true';
-      }
-    }
-  }
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // POST RENDERING

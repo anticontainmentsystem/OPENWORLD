@@ -1,4 +1,4 @@
-const { getFile } = require('./utils/gh');
+import { readData } from './utils/gh.js';
 
 // Helper: Determine shard path from timestamp/ID
 function getShardPath(timestamp) {
@@ -22,7 +22,7 @@ function getTimestampFromId(postId) {
   return null;
 }
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   const { id } = event.queryStringParameters || {};
   
   if (!id) {

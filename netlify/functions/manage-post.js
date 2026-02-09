@@ -1,9 +1,4 @@
-/**
- * Manage Post (Backend Proxy)
- * Handle Deletion and Reactions
- */
-const { getFile, writeData } = require('./utils/gh'); // Legacy line removal target if finding via content
-import { readData, writeData } from './utils/gh.js'; // Ensure correct import
+import { readData, writeData } from './utils/gh.js';
 
 // Helper: Determine shard path from timestamp/ID
 function getShardPath(timestamp) {
@@ -34,9 +29,8 @@ export const handler = async (event, context) => {
   }
 
   try {
-
-    const user = await userRes.json();
-    const { action, postId, reactionType } = JSON.parse(event.body);
+    const payload = JSON.parse(event.body);
+    const { action, postId } = payload;
 
     // 2. Read Current Data
     // Determine shard path for the post
@@ -79,7 +73,7 @@ export const handler = async (event, context) => {
       message = `Soft delete post ${postId} by @${user.login}`;
       
     } else if (action === 'edit') {
-       const { content, repo, media, activity, code } = JSON.parse(event.body);
+       const { content, repo, media, activity, code } = payload;
        const post = posts.find(p => p.id === postId);
        
        if (!post) return { statusCode: 404, body: JSON.stringify({ error: 'Post not found' }) };
@@ -125,6 +119,11 @@ export const handler = async (event, context) => {
       // Initialize reactions if not exists
       if (!post.reactions) {
         post.reactions = { fire: 0 };
+      }
+      const reactionType = payload.reactionType || 'fire';
+      const validReactions = ['fire', 'heart', 'rocket'];
+      if (!validReactions.includes(reactionType)) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'Invalid reaction type' }) };
       }
       
       // Initialize reactedBy tracking if not exists

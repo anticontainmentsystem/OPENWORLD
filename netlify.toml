@@ -2,6 +2,9 @@
   command = "npm ci && npm run build"
   publish = "dist"
 
+[build.environment]
+  NODE_OPTIONS = "--max-old-space-size=4096"
+
 [dev]
   command = "npm run dev"
   port = 3000

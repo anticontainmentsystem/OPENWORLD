@@ -54,9 +54,13 @@ export const handler = async (event, context) => {
         // For migration, we assume we want to OVERWRITE or MERGE.
         // Let's read first to be safe (idempotent).
         let existing = [];
+        let sha = null;
         try {
             const currentShard = await readData(path);
-            if (currentShard) existing = currentShard.data;
+            if (currentShard) {
+                existing = currentShard.data;
+                sha = currentShard.sha;
+            }
         } catch (e) {} // ignore 404
         
         // Merge logic: Add new migration posts if ID not present
@@ -74,7 +78,7 @@ export const handler = async (event, context) => {
         merged.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
         if (addedCount > 0) {
-            await writeData(path, merged, `Migrate ${addedCount} posts to shard`);
+            await writeData(path, merged, sha, `Migrate ${addedCount} posts to shard`);
             summary.push(`Wrote ${addedCount} (Total: ${merged.length}) to ${path}`);
         } else {
             summary.push(`Skipped ${path} (No new posts)`);

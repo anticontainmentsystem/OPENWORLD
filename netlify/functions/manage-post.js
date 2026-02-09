@@ -159,7 +159,9 @@ export const handler = async (event, context) => {
       post.reactions[reactionType] = post.reactedBy[reactionType].length;
       
       // Write data before returning
-      await writeData('posts.json', posts, sha, message);
+      
+      // Write data before returning
+      await writeData(shardPath, posts, sha, message);
       
       // Return whether user has now reacted
       return {

@@ -52,7 +52,7 @@ export const RecommendationEngine = {
     );
     
     // Exclude already-followed users (if enabled and we have follow data)
-    if (excludeFollowed && currentUser?.following) {
+    if (excludeFollowed && currentUser?.following && Array.isArray(currentUser.following)) {
       const followingSet = new Set(currentUser.following.map(f => f.username || f));
       candidates = candidates.filter(u => !followingSet.has(u.username));
     }
@@ -95,7 +95,9 @@ export const RecommendationEngine = {
         stats[username] = {
           username,
           userId: post.userId,
-          avatar: post.avatar,
+          username,
+          userId: post.userId,
+          avatar: post.avatar || `https://github.com/${username}.png`,
           postCount: 0,
           fireCount: 0,
           followingCount: 0 // Will be filled from user profiles

@@ -182,7 +182,12 @@ async function updateAuthUI(user) {
     if (statFollowing) statFollowing.textContent = user.following || 0;
     
     const statPosts = document.getElementById('statPosts');
-    if (statPosts) statPosts.textContent = posts.getPostsByUser(user.id).length;
+    if (statPosts) {
+      // Use efficient length check
+      const userPosts = posts.getPostsByUser(user.id);
+      // console.log('[Feed] Updating post count for', user.username, 'Count:', userPosts.length);
+      statPosts.textContent = userPosts.length;
+    }
     
     // Load repos for picker
     userRepos = await fetchUserRepos();

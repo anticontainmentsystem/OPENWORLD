@@ -48,6 +48,7 @@ export const handler = async (event, context) => {
      return { statusCode: 401, body: JSON.stringify({ error: 'Authentication failed' }) };
   }
     
+  try {
     let payload;
     try {
       payload = JSON.parse(event.body);
@@ -110,9 +111,7 @@ export const handler = async (event, context) => {
       sha, 
       `Add post by @${user.login} to shard ${shardPath}`
     );
-    
-    // 6. Update rate limit
-    rateLimits.set(user.id, now);
+
 
     return {
       statusCode: 200,

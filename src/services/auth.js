@@ -373,6 +373,23 @@ class PostsService {
            this.updateCommentCountUI(remotePost.id, remoteComments);
         }
 
+        // 3. Check Content/Edit Status
+        if (localPost.content !== remotePost.content) {
+          localPost.content = remotePost.content;
+          localPost.versions = remotePost.versions;
+          localPost.lastEditedAt = remotePost.lastEditedAt;
+          // Trigger a re-render for this card context if possible, or just let next render handle it.
+          // For now, we update the data. Full UI update would require more DOM logic.
+        }
+        
+        // 4. Check Deletion Status
+        if (localPost.deleted !== remotePost.deleted) {
+          localPost.deleted = remotePost.deleted;
+          localPost.deletedAt = remotePost.deletedAt;
+          // If deleted changed, we might need to hide/show. 
+          // Ideally we'd trigger a UI refresh here.
+        }
+
       } else {
         // New Post Found - user might want to see it?
         // For now, let's NOT automatically inject new posts to avoid layout shifts.

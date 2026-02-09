@@ -16,6 +16,11 @@ const bodySection = document.getElementById('bodySection');
 const sendBtn = document.getElementById('sendBtn');
 const responseOutput = document.getElementById('responseOutput');
 const diagnosticsArea = document.getElementById('diagnosticsArea');
+const statusCode = document.getElementById('statusCode');
+const timingBadge = document.getElementById('timingBadge');
+
+// State
+let startTime = 0;
 
 // Initialize
 function init() {

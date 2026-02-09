@@ -138,10 +138,91 @@ function renderLoginButton() {
 // POST RENDERING
 // ═══════════════════════════════════════════════════════════════════════════
 
+  if (actionType === 'delete' && postId) {
+    if (confirm('Delete this post? It can be restored from using the restore button.')) {
+      await posts.deletePost(postId); 
+      // Re-render to show it as deleted (or hide it if we filter)
+      // For immediate feedback, let's just re-render
+      renderPosts();
+      updatePostCount();
+    }
+  }
+
+  if (actionType === 'restore' && postId) {
+     if (confirm('Restore this post?')) {
+        await posts.restorePost(postId);
+        renderPosts();
+        updatePostCount();
+     }
+  }
+
+  if (actionType === 'edit' && postId) {
+     const post = posts.getPosts().find(p => p.id === postId);
+     if (!post) return;
+     
+     const newContent = prompt('Edit your post:', post.content);
+     if (newContent !== null && newContent !== post.content) {
+        await posts.editPost(postId, newContent);
+        renderPosts();
+     }
+  }
+
+  if (actionType === 'history' && postId) {
+     const post = posts.getPosts().find(p => p.id === postId);
+     if (!post || !post.versions) return;
+     
+     const history = post.versions.map(v => 
+        `${new Date(v.timestamp).toLocaleString()}:\n"${v.content}"`
+     ).join('\n\n-------------------\n\n');
+     
+     alert(`Edit History for Post:\n\n${history}`);
+  }
+  
+  // Comment toggle
+  if (actionType === 'comment' && postId) {
+    const container = document.getElementById(`comments-${postId}`);
+    if (!container) return;
+    
+    const isVisible = container.style.display !== 'none';
+    container.style.display = isVisible ? 'none' : 'block';
+    
+    // Initialize CommentThread if not already
+    if (!isVisible && !container.dataset.initialized) {
+      const post = posts.getPosts().find(p => p.id === postId);
+      if (post) {
+        new CommentThread(container, post, {
+          onCommentAdded: (newComment) => {
+            // Update the button count
+            const btn = document.querySelector(`[data-action="comment"][data-post-id="${postId}"] span`);
+            const currentCount = parseInt(btn.textContent) || 0;
+            btn.textContent = currentCount + 1;
+          }
+        });
+        container.dataset.initialized = 'true';
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST RENDERING
+// ═══════════════════════════════════════════════════════════════════════════
+
 function renderPosts() {
   const allPosts = posts.getPosts();
+  // Filter out deleted posts for the main feed, UNLESS we are in a special "Trash" mode
+  // For now, let's show deleted posts as "Deleted" placeholders if the user is the owner
+  // so they can restore them.
+  const currentUser = auth.getUser();
   
-  if (allPosts.length === 0) {
+  // Show active posts, OR deleted posts if owned by current user (Trash view)
+  const displayPosts = allPosts.filter(p => {
+    if (!p.deleted) return true;
+    if (currentUser && String(p.userId) === String(currentUser.id)) return true;
+    return false;
+  });
+  
+  if (displayPosts.length === 0) {
     feedPosts.innerHTML = `
       <div class="card" style="text-align: center; padding: var(--sp-5);">
         <div style="font-size: 2rem; margin-bottom: var(--sp-2);">🌐</div>
@@ -152,7 +233,7 @@ function renderPosts() {
     return;
   }
   
-  feedPosts.innerHTML = allPosts.map(post => renderPostCard(post)).join('');
+  feedPosts.innerHTML = displayPosts.map(post => renderPostCard(post)).join('');
 }
 
 
@@ -507,11 +588,40 @@ async function handlePostActions(e) {
   }
   
   if (actionType === 'delete' && postId) {
-    if (confirm('Delete this post?')) {
-      posts.deletePost(postId);
+    if (confirm('Trash this post? You can restore it later.')) {
+      await posts.deletePost(postId);
       renderPosts();
       updatePostCount();
     }
+  }
+
+  if (actionType === 'restore' && postId) {
+    if (confirm('Restore this post?')) {
+      await posts.restorePost(postId);
+      renderPosts();
+      updatePostCount();
+    }
+  }
+
+  if (actionType === 'edit' && postId) {
+     const post = posts.getPosts().find(p => p.id === postId);
+     if (post) {
+        const newContent = prompt('Edit your post:', post.content);
+        if (newContent !== null && newContent !== post.content) {
+          await posts.editPost(postId, newContent);
+          renderPosts();
+        }
+     }
+  }
+
+  if (actionType === 'history' && postId) {
+     const post = posts.getPosts().find(p => p.id === postId);
+     if (post && post.versions) {
+        const historyText = post.versions.map(v => 
+          `[${new Date(v.timestamp).toLocaleTimeString()}] ${v.content}`
+        ).join('\n---\n');
+        alert(`Edit History:\n\n${historyText}\n\n(Current: ${post.content})`);
+     }
   }
   
   // Comment toggle

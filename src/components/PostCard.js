@@ -90,7 +90,35 @@ export function renderPostCard(post) {
   const totalReactions = Object.values(post.reactions || { fire: 0 }).reduce((a, b) => a + b, 0);
   const currentUser = auth.getUser();
   const isOwner = currentUser && post.userId === currentUser.id;
+  const isDeleted = post.deleted;
+
+  // Trash View State
+  if (isDeleted) {
+    return `
+      <article class="post-card post-card--deleted" data-post-id="${post.id}">
+        <div class="post-card__content text-dim">
+          🗑️ <strong>Deleted Post</strong> <span class="text-muted">(${formatRelativeTime(post.deletedAt)})</span>
+        </div>
+        ${isOwner ? `
+          <footer class="post-card__actions">
+            <button class="post-card__action text-moss" data-action="restore" data-post-id="${post.id}">
+              ♻️ Restore
+            </button>
+            <button class="post-card__action text-dim" style="margin-left: auto;" title="Permanent delete coming soon">
+              ⚠️ Purge
+            </button>
+          </footer>
+        ` : ''}
+      </article>
+    `;
+  }
   
+  // Edit History Badge
+  const isEdited = post.versions && post.versions.length > 0;
+  const editedBadge = isEdited 
+    ? `<a href="#" class="post-card__edited-badge" data-action="history" data-post-id="${post.id}" title="View Edit History">(edited)</a>` 
+    : '';
+
   // Modular structure: Text → Media → Attachments (code, repo, activity)
   return `
     <article class="post-card" data-post-id="${post.id}">
@@ -103,7 +131,10 @@ export function renderPostCard(post) {
             <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__name">${post.userName}</a>
             <a href="/pillars/community/profile.html?user=${post.username}" class="post-card__username">@${post.username}</a>
           </div>
-          <div class="post-card__time">${formatRelativeTime(post.createdAt)}</div>
+          <div class="post-card__time">
+             ${formatRelativeTime(post.createdAt)}
+             ${editedBadge}
+          </div>
         </div>
         ${post.type ? `<span class="post-card__type post-card__type--${post.type}">${typeLabels[post.type] || post.type}</span>` : ''}
       </header>
@@ -125,7 +156,12 @@ export function renderPostCard(post) {
         <button class="post-card__action" data-action="comment" data-post-id="${post.id}">
           💬 <span>${Array.isArray(post.comments) ? post.comments.length : 0}</span>
         </button>
-        ${isOwner ? `<button class="post-card__action" data-action="delete" data-post-id="${post.id}">🗑️</button>` : ''}
+        ${isOwner ? `
+          <div style="margin-left: auto; display: flex; gap: 8px;">
+            <button class="post-card__action" data-action="edit" data-post-id="${post.id}">✏️</button>
+            <button class="post-card__action" data-action="delete" data-post-id="${post.id}">🗑️</button>
+          </div>
+        ` : ''}
       </footer>
       <div class="post-card__comments" id="comments-${post.id}" style="display: none;"></div>
     </article>

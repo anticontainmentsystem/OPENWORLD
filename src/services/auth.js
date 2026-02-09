@@ -233,13 +233,87 @@ class PostsService {
     if (index > -1) {
       try {
         await postsAPI.delete(postId, user.username, token);
-        this.posts.splice(index, 1);
+        // Soft delete locally
+        this.posts[index].deleted = true;
+        this.posts[index].deletedAt = new Date().toISOString();
+        // Trigger UI update (which will filter it out)
         return true;
       } catch (error) {
         console.error('[Posts] Delete error:', error);
       }
     }
     return false;
+  }
+
+  async editPost(postId, newContent) {
+    const user = auth.getUser();
+    const token = auth.getAccessToken();
+    if (!user || !token) throw new Error('Not logged in');
+
+    try {
+       const res = await fetch('/.netlify/functions/manage-post', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${token}`
+         },
+         body: JSON.stringify({
+           action: 'edit',
+           postId,
+           newContent
+         })
+       });
+       
+       if (!res.ok) throw new Error('Failed to edit');
+       
+       const post = this.posts.find(p => p.id === postId);
+       if (post) {
+         if (!post.versions) post.versions = [];
+         post.versions.push({
+           timestamp: post.lastEditedAt || post.createdAt,
+           content: post.content,
+           reason: 'Edit'
+         });
+         post.content = newContent;
+         post.lastEditedAt = new Date().toISOString();
+       }
+       return true;
+    } catch (error) {
+       console.error('[Posts] Edit error:', error);
+       throw error;
+    }
+  }
+
+  async restorePost(postId) {
+    const user = auth.getUser();
+    const token = auth.getAccessToken();
+    if (!user || !token) throw new Error('Not logged in');
+
+    try {
+       const res = await fetch('/.netlify/functions/manage-post', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+           'Authorization': `Bearer ${token}`
+         },
+         body: JSON.stringify({
+           action: 'restore',
+           postId
+         })
+       });
+       
+       if (!res.ok) throw new Error('Failed to restore');
+       
+       const post = this.posts.find(p => p.id === postId);
+       if (post) {
+         post.deleted = false;
+         post.deletedAt = null;
+       }
+       return true;
+    } catch (error) {
+       console.error('[Posts] Restore error:', error);
+       throw error;
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

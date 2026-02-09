@@ -414,7 +414,7 @@ input::placeholder, textarea::placeholder {
    ───────────────────────────────────────────────────────────────────────────── */
 
 .text-copper { color: var(--copper-500); }
-.text-moss { color: var(--moss-500); }
+.text-moss { color: var(--moss-400); }
 .text-dim { color: var(--text-dim); }
 .text-muted { color: var(--text-muted); }
 

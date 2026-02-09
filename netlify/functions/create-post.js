@@ -61,19 +61,27 @@ export const handler = async (event, context) => {
     };
 
     // 5. System Write (Using PAT)
-    const result = await readData('posts.json');
+    const shardPath = getShardPath();
+    let result;
+    try {
+       result = await readData(shardPath);
+    } catch (e) {
+       // Shard might not exist yet
+       result = { data: [], sha: null };
+    }
+    
     const posts = result?.data || [];
     const sha = result?.sha;
     
     // Add new post
     posts.unshift(post);
     
-    // Write back
+    // Write back to SHARD
     await writeData(
-      'posts.json',
+      shardPath,
       posts,
       sha, 
-      `Add post by @${user.login} (via OpenWorld Proxy)`
+      `Add post by @${user.login} to shard ${shardPath}`
     );
     
     // 6. Update rate limit

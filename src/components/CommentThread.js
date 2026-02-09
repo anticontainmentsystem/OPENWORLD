@@ -235,6 +235,7 @@ export class CommentThread {
       badge.style.display = 'none';
       input.placeholder = 'Add a comment...';
     }
+  }
 
   showCodeTab() {
     const content = this.container.querySelector('#attachContent');

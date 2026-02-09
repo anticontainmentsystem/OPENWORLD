@@ -3,6 +3,8 @@
  * Stores posts and profiles as JSON in a GitHub repo
  */
 
+import { queue } from './queue.js';
+
 // Data repo - will be created in user's account
 const DATA_OWNER = 'anticontainmentsystem';
 const DATA_REPO = 'openworld-data';

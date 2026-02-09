@@ -120,7 +120,7 @@ export async function writeData(path, data, sha, token, message) {
  * Posts API
  */
 export const postsAPI = {
-  async get() {
+  async getAll() {
     try {
       // Phase 2: Use Sharded/Cached Feed Endpoint
       const response = await fetch('/.netlify/functions/get-feed');

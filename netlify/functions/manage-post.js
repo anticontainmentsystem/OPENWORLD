@@ -40,20 +40,52 @@ export async function handler(event, context) {
     let message = '';
 
     // 3. Process Action
+    // 3. Process Action
     if (action === 'delete') {
       const postIndex = posts.findIndex(p => p.id === postId);
       if (postIndex === -1) {
         return { statusCode: 404, body: JSON.stringify({ error: 'Post not found' }) };
       }
       
-      // Verify ownership (String/Number comparison safety)
-      if (String(posts[postIndex].userId) !== String(user.id)) {
+      const post = posts[postIndex];
+      // Verify ownership
+      if (String(post.userId) !== String(user.id)) {
         return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized: Not your post' }) };
       }
       
-      posts.splice(postIndex, 1);
-      message = `Delete post by @${user.login} via OpenWorld Proxy`;
+      // Soft Delete
+      post.deleted = true;
+      post.deletedAt = new Date().toISOString();
+      message = `Soft delete post ${postId} by @${user.login}`;
       
+    } else if (action === 'edit') {
+       const { newContent } = JSON.parse(event.body);
+       const post = posts.find(p => p.id === postId);
+       
+       if (!post) return { statusCode: 404, body: JSON.stringify({ error: 'Post not found' }) };
+       if (String(post.userId) !== String(user.id)) return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
+       
+       // Create version snapshot
+       if (!post.versions) post.versions = [];
+       post.versions.push({
+         timestamp: post.lastEditedAt || post.createdAt,
+         content: post.content,
+         reason: 'Edit' // Could be passed in payload
+       });
+       
+       post.content = newContent;
+       post.lastEditedAt = new Date().toISOString();
+       message = `Edit post ${postId} by @${user.login}`;
+       
+    } else if (action === 'restore') {
+      const post = posts.find(p => p.id === postId);
+      if (!post) return { statusCode: 404, body: JSON.stringify({ error: 'Post not found' }) };
+      if (String(post.userId) !== String(user.id)) return { statusCode: 403, body: JSON.stringify({ error: 'Unauthorized' }) };
+      
+      post.deleted = false;
+      post.deletedAt = null;
+      message = `Restore post ${postId} by @${user.login}`;
+
     } else if (action === 'react') {
       const post = posts.find(p => p.id === postId);
       if (!post) {
@@ -130,7 +162,7 @@ export async function handler(event, context) {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ success: true })
+      body: JSON.stringify({ success: true, post: posts.find(p => p.id === postId) })
     };
 
   } catch (error) {

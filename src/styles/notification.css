@@ -248,3 +248,19 @@
 .notification-wrapper, .notification-dropdown {
   display: none !important;
 }
+
+.notification-badge-external {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--copper-500);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-left: var(--sp-2);
+  border: 1px solid var(--bg);
+}

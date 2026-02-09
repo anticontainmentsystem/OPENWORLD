@@ -66,6 +66,7 @@ function renderUserBadge(user) {
     <button class="user-badge__trigger" id="userBadgeTrigger">
       <img src="${user.avatar}" alt="${user.name}" class="user-badge__avatar">
       <span class="user-badge__name">${user.username}</span>
+      <span class="notification-badge-external" id="externalNotifBadge" style="display: none">0</span>
     </button>
     <div class="user-badge__dropdown">
       <div class="user-badge__dropdown-header">

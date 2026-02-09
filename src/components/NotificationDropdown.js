@@ -8,6 +8,9 @@ import { formatRelativeTime } from '../services/auth.js';
 export class NotificationDropdown {
   constructor(container) {
     this.container = container;
+    // Find external badge (outside this container, in the document)
+    this.externalBadge = document.getElementById('externalNotifBadge');
+    
     this.render();
     this.bindEvents();
     
@@ -32,7 +35,7 @@ export class NotificationDropdown {
         
         <div class="notification-list-inline" id="notifList" style="display: none;">
           <div class="notification-header-inline">
-            <button class="btn btn--text btn--xs" id="markReadBtn">Mark all read</button>
+            <button class="btn btn--text btn--xs" id="markReadBtn" style="font-size: 0.7rem; padding: 2px 6px;">Mark all read</button>
           </div>
           <div id="notifItems">
             <div class="text-dim" style="padding: var(--sp-2); text-align: center; font-size: 0.8rem;">No notifications</div>
@@ -66,6 +69,13 @@ export class NotificationDropdown {
       const item = e.target.closest('.notification-item-inline');
       if (!item) return;
 
+      // Mark as read immediately
+      if (item.dataset.id) {
+         notificationService.markAsRead(item.dataset.id);
+         item.classList.remove('unread');
+         // Also decrease unread count optimistically? Service will push update.
+      }
+
       // If clicked the actor link specifically, let it handle navigation
       if (e.target.closest('.notif-actor-link')) {
         return;
@@ -73,7 +83,7 @@ export class NotificationDropdown {
       
       // Otherwise navigate to context
       const url = item.dataset.url;
-      if (url) {
+      if (url && url !== '#') {
         window.location.href = url;
       }
     };
@@ -83,12 +93,22 @@ export class NotificationDropdown {
     const badge = this.container.querySelector('#notifBadge');
     const listItems = this.container.querySelector('#notifItems');
 
-    // Update Badge
+    // Update Internal Badge
     if (unreadCount > 0) {
       badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
       badge.style.display = 'inline-flex';
     } else {
       badge.style.display = 'none';
+    }
+    
+    // Update External Badge
+    if (this.externalBadge) {
+        if (unreadCount > 0) {
+           this.externalBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+           this.externalBadge.style.display = 'inline-flex';
+        } else {
+           this.externalBadge.style.display = 'none';
+        }
     }
 
     // Update List
@@ -98,7 +118,7 @@ export class NotificationDropdown {
     }
 
     listItems.innerHTML = notifications.map(n => `
-      <div class="notification-item-inline ${n.read ? '' : 'unread'}" data-url="${this.getUrl(n)}" style="cursor: pointer;">
+      <div class="notification-item-inline ${n.read ? '' : 'unread'}" data-id="${n.id}" data-url="${this.getUrl(n)}" style="cursor: pointer;">
         <div class="notification-icon-inline">
           ${this.getIcon(n.type)}
         </div>

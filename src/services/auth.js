@@ -86,6 +86,7 @@ class AuthService {
         this.user.following = Math.max(0, (this.user.following || 0) - 1);
       }
       this.user.followingList = list;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.user));
       this.notify(); // Update UI immediately
     }
 

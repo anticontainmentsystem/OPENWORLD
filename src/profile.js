@@ -6,6 +6,13 @@
 import { auth, posts, formatRelativeTime } from './services/auth.js';
 import { usersAPI } from './services/github-data.js';
 import { NotificationDropdown } from './components/NotificationDropdown.js';
+import { ConfirmModal } from './components/ConfirmModal.js';
+
+// Add modal styles
+const modalLink = document.createElement('link');
+modalLink.rel = 'stylesheet';
+modalLink.href = '/src/styles/modal.css';
+document.head.appendChild(modalLink);
 
 // Add styles
 const link = document.createElement('link');
@@ -583,7 +590,8 @@ import { CommentThread } from './components/CommentThread.js';
 function renderUserPosts(userIdOrName) {
   const allPosts = posts.getPosts();
   // Filter by userId corresponding to the profile being viewed through userIdOrName
-  const userPosts = allPosts.filter(p => p.userId === userIdOrName || p.username === userIdOrName);
+  // AND ensure not deleted (Deleted posts go to Trash tab)
+  const userPosts = allPosts.filter(p => (p.userId === userIdOrName || p.username === userIdOrName) && !p.deleted);
   
   const postsContainer = document.getElementById('userPosts');
   
@@ -746,8 +754,20 @@ function setupTabs() {
     repos: document.getElementById('reposSection'),
     starred: document.getElementById('starredSection'),
     activity: document.getElementById('activitySection'),
-    posts: document.getElementById('postsSection')
+    posts: document.getElementById('postsSection'),
+    trash: document.getElementById('trashSection')
   };
+  
+  // Show Trash tab only for own profile
+  const trashTab = document.getElementById('trashTab');
+  const currentUser = auth.getUser();
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestedUser = urlParams.get('user');
+  
+  if (trashTab) {
+      const isOwner = !requestedUser || (currentUser && currentUser.username === requestedUser);
+      trashTab.style.display = isOwner ? 'inline-block' : 'none';
+  }
   
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -761,9 +781,104 @@ function setupTabs() {
       
       if (tabName === 'starred') {
         renderStarredRepos();
+      } else if (tabName === 'trash') {
+        renderTrashPosts();
       }
     });
   });
 }
+
+function renderTrashPosts() {
+    const allPosts = posts.getPosts();
+    const currentUser = auth.getUser();
+    if (!currentUser) return;
+    
+    // Get deleted posts for current user
+    const deletedPosts = allPosts.filter(p => p.deleted && (p.userId === currentUser.id || p.username === currentUser.username));
+    const container = document.getElementById('trashPosts');
+    
+    if (deletedPosts.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: var(--sp-6); color: var(--text-dim);">
+                <div style="font-size: 2rem; margin-bottom: var(--sp-2);">🗑️</div>
+                <p>Trash is empty.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = deletedPosts.map(post => `
+        <div class="post-card" style="opacity: 0.7; border-color: var(--copper-700);">
+            <div class="post-card__header">
+                <span class="text-dim">Deleted ${formatRelativeTime(post.deletedAt || Date.now())}</span>
+            </div>
+            <div class="post-card__content" style="margin: var(--sp-3) 0;">
+                ${post.content || '<em>No content</em>'}
+            </div>
+            <div class="post-card__footer" style="justify-content: flex-end; gap: var(--sp-3);">
+                <button class="btn btn--sm btn--ghost text-copper" onclick="handlePurge('${post.id}')">Purge Forever 💀</button>
+                <button class="btn btn--sm btn--secondary" onclick="handleRestore('${post.id}')">Restore ♻️</button>
+            </div>
+        </div>
+    `).join('');
+    
+    // Bind global handlers for these inline onclicks (or use event delegation)
+    // For simplicity, attaching to window or using event delegation on container is better.
+    // Let's use event delegation on the container below.
+}
+
+// Add event listener for Trash actions
+document.addEventListener('click', async (e) => {
+   // Restore
+   if (e.target.closest('[onclick^="handleRestore"]')) {
+       e.preventDefault();
+       e.stopPropagation();
+       // Extract ID from the onclick attribute string... hacky but works with the template above
+       // Better: use data attributes
+   }
+});
+
+// Better: Re-bind using data attributes
+// Fix renderTrashPosts to use data attributes
+window.handleRestore = async (postId) => {
+    const confirmed = await ConfirmModal.show({
+        title: 'Restore Post?',
+        message: 'This post will reappear in your feed and profile.',
+        confirmText: 'Restore',
+        theme: 'moss'
+    });
+    
+    if (confirmed) {
+        await posts.restorePost(postId);
+        renderTrashPosts();
+        // Also refresh posts if visible?
+    }
+};
+
+window.handlePurge = async (postId) => {
+    const confirmed = await ConfirmModal.show({
+        title: 'Permanently Delete?',
+        message: 'This action cannot be undone. The post will be gone forever.',
+        confirmText: 'Purge',
+        confirmStyle: 'danger', // custom logic in modal needed? No, just theme
+        theme: 'copper' // Red/Copper for danger
+    });
+    
+    if (confirmed) {
+        // We need a purge method in auth.js/posts service
+        const token = auth.getAccessToken();
+        await fetch('/.netlify/functions/manage-post', {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ action: 'purge', postId })
+        });
+        
+        // Remove locally
+        posts.posts = posts.posts.filter(p => p.id !== postId);
+        posts.notify();
+        
+        renderTrashPosts();
+    }
+};
 
 console.log('%c◈ OpenWorld Profile', 'color: #b87333; font-size: 16px;');

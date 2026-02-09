@@ -467,21 +467,24 @@ input::placeholder, textarea::placeholder {
   opacity: 0.6;
 }
 
-.footer__separator {
-  margin: 0 var(--sp-2);
-  color: var(--text-muted);
-  opacity: 0.5;
+.footer__sublink {
+  margin: var(--sp-2) 0;
+  font-size: 0.9rem;
 }
 
 .footer__link {
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 0.9rem;
-  transition: color 0.2s;
+  transition: all 0.2s;
   border-bottom: 1px dotted transparent;
 }
 
 .footer__link:hover {
-  color: var(--world-blue);
-  border-bottom-color: var(--world-blue);
+  color: var(--copper-500);
+  border-bottom-color: var(--copper-500);
+}
+
+.footer__link:active {
+  color: var(--moss-400);
+  border-bottom-color: var(--moss-400);
 }

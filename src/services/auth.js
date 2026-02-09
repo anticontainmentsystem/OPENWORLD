@@ -131,6 +131,7 @@ class PostsService {
   constructor() {
     this.posts = [];
     this.loaded = false;
+    this.listeners = [];
   }
 
   async loadPosts() {

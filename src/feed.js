@@ -12,6 +12,7 @@ import { CommentThread } from './components/CommentThread.js';
 import { renderPostCard, escapeHtml, convertGitHubUrl } from './components/PostCard.js';
 import { ConfirmModal } from './components/ConfirmModal.js';
 import { initCursorTrail } from './components/CursorTrail.js';
+import { RecommendationEngine } from './services/RecommendationEngine.js';
 
 // Initialize Easter Eggs
 initCursorTrail();
@@ -287,18 +288,65 @@ function renderPosts() {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function renderSuggestions(currentUser) {
-  if (!currentUser) {
-    suggestions.innerHTML = `
-      <p class="text-dim" style="font-size: 0.85rem;">Sign in to see suggestions</p>
-    `;
+  const allPosts = posts.getPosts();
+  const memberCount = RecommendationEngine.getMemberCount(allPosts);
+  const userStats = RecommendationEngine.calculateUserStats(allPosts);
+  const allUsers = Object.values(userStats);
+  
+  // Get recommendations (6 users: 3 engagement + 3 community)
+  const recommendations = RecommendationEngine.getRecommendations(allUsers, currentUser);
+  
+  // Build member count header
+  let html = `
+    <div style="margin-bottom: var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border);">
+      <span class="text-dim" style="font-size: 0.8rem;">◈ ${memberCount} OpenWorlders</span>
+    </div>
+  `;
+  
+  if (recommendations.length === 0) {
+    html += `<p class="text-dim" style="font-size: 0.85rem;">No recommendations yet.</p>`;
+    suggestions.innerHTML = html;
     return;
   }
   
-  suggestions.innerHTML = `
-    <p class="text-dim" style="font-size: 0.85rem;">You're the first creator here! 🎉</p>
-    <p class="text-dim" style="font-size: 0.8rem; margin-top: var(--sp-2);">Share a post to get started.</p>
-  `;
+  // Render each recommended user (simple list with follow buttons)
+  html += recommendations.map(user => `
+    <div class="suggestion-item" style="display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) 0;">
+      <img src="${user.avatar || `https://github.com/${user.username}.png`}" 
+           alt="${user.username}" 
+           style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+      <div style="flex: 1; min-width: 0;">
+        <a href="/pillars/community/profile.html?user=${user.username}" 
+           style="font-size: 0.85rem; font-weight: 500; color: var(--text); text-decoration: none; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          ${user.username}
+        </a>
+        <span class="text-dim" style="font-size: 0.7rem;">${user.postCount} posts</span>
+      </div>
+      <button class="btn btn--sm btn--ghost" 
+              style="font-size: 0.75rem; padding: 4px 8px;" 
+              data-follow-user="${user.username}"
+              onclick="handleFollowFromSuggestion('${user.username}')">
+        Follow
+      </button>
+    </div>
+  `).join('');
+  
+  suggestions.innerHTML = html;
 }
+
+// Handle follow from suggestion sidebar
+window.handleFollowFromSuggestion = async (username) => {
+  const user = auth.getUser();
+  if (!user) return;
+  
+  try {
+    await auth.followUser(username);
+    // Re-render suggestions to update UI
+    renderSuggestions(user);
+  } catch (err) {
+    console.error('Follow failed:', err);
+  }
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // REPO PICKER (GithubBrowser)

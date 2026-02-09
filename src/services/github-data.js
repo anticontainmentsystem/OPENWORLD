@@ -158,30 +158,73 @@ export const postsAPI = {
   },
   
   async delete(postId, username, token) {
-    queue.add({
-        type: 'delete',
-        data: { postId }
-    });
-    return true;
+      if (!token) throw new Error('Authentication required');
+      
+      const response = await fetch('/.netlify/functions/manage-post', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+              action: 'delete',
+              postId
+          })
+      });
+      
+      if (!response.ok) {
+           const error = await response.json();
+           throw new Error(error.error || 'Failed to delete post');
+      }
+      return true;
   },
   
   async edit(postId, postData, token) {
-      // postData is { content, repo, media, activity, code }
-      queue.add({
-          type: 'edit',
-          data: { postId, ...postData }
+      if (!token) throw new Error('Authentication required');
+      
+      const response = await fetch('/.netlify/functions/manage-post', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+              action: 'edit',
+              postId,
+              ...postData
+          })
       });
+      
+      if (!response.ok) {
+           const error = await response.json();
+           throw new Error(error.error || 'Failed to edit post');
+      }
       return true;
   },
   
   async react(postId, reactionType, token) {
-    queue.add({
-        type: 'react',
-        data: { postId, reactionType }
-    });
-    // Optimistic toggle return logic is handled by UI state usually, 
-    // but the caller expects a result. We'll return a fake success.
-    return { success: true }; 
+      if (!token) throw new Error('Authentication required');
+      
+      // Fire and forget-ish, but let's await to be safe or catch errors
+      const response = await fetch('/.netlify/functions/manage-post', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+              action: 'react',
+              postId,
+              reactionType
+          })
+      });
+      
+      if (!response.ok) {
+          // Silent fail for reactions usually, but let's log
+          console.error('Reaction failed');
+          return { success: false };
+      }
+      return { success: true }; 
   }
 };
 

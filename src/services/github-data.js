@@ -136,28 +136,25 @@ export const postsAPI = {
     }
   },
 
-  // Write (Queued + Optimistic)
+  // Write (Direct + Optimistic)
   async create(post, token) {
-     // 1. Prepare Optimistic Data
-     const tempId = `post_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-     const optimisticPost = {
-         id: tempId,
-         key: tempId, // for React
-         createdAt: new Date().toISOString(),
-         reactions: { fire: 0 },
-         replyCount: 0,
-         ...post
-     };
-     
-     // 2. Add to Queue (Background Sync)
-     // We pass the RAW post data needed by the function
-     queue.add({
-         type: 'create',
-         data: post
-     });
-     
-     // 3. Return immediately
-     return optimisticPost;
+      if (!token) throw new Error('Authentication required');
+      
+      const response = await fetch('/.netlify/functions/create-post', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(post)
+      });
+      
+      if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create post');
+      }
+      
+      return await response.json();
   },
   
   async delete(postId, username, token) {

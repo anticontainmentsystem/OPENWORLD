@@ -1,56 +1,78 @@
-import { readData } from './utils/gh.js';
+const { getFile } = require('./utils/gh');
 
-/**
- * Get Post (API Endpoint)
- * Fetch a specific post by ID using the System PAT.
- * Avoiding direct client-side fetch due to raw.githubusercontent lag/CORS.
- */
-export async function handler(event, context) {
+// Helper: Determine shard path from timestamp/ID
+function getShardPath(timestamp) {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `data/posts/${year}/${month}.json`;
+}
+
+// Helper: Get timestamp from Post ID
+function getTimestampFromId(postId) {
+  if (!postId) return null;
+  const parts = String(postId).split('_');
+  if (parts.length >= 2 && !isNaN(parts[1])) {
+    return parseInt(parts[1]);
+  }
+  // If legacy numeric ID (timestamp-ish)
+  if (!isNaN(postId) && String(postId).length > 10) {
+      return parseInt(postId);
+  }
+  return null;
+}
+
+exports.handler = async (event, context) => {
   const { id } = event.queryStringParameters || {};
   
-  // 1. Validation
   if (!id) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing post ID' })
-    };
+    return { statusCode: 400, body: JSON.stringify({ error: 'Missing id' }) };
   }
 
-  // 2. Fetch Posts.json using System PAT
+  // Caching for single post (stale-while-revalidate)
+  const headers = {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+    'Access-Control-Allow-Origin': '*'
+  };
+
   try {
-    const file = await readData('posts.json');
+    const timestamp = getTimestampFromId(id);
+    let post = null;
     
-    if (!file || !file.data) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ error: 'posts.json not found' })
-      };
+    // 1. Try Shard (if we can derive date)
+    if (timestamp) {
+        const shardPath = getShardPath(timestamp);
+        try {
+            const posts = await getFile(shardPath);
+            post = posts.find(p => String(p.id) === String(id));
+        } catch (e) {
+            console.log(`[GetPost] Shard ${shardPath} not found.`);
+        }
+    }
+    
+    // 2. Fallback: Legacy posts.json (if validation fails or not found in shard)
+    // We keep reading posts.json for now as a fallback for old IDs we can't parse
+    if (!post) {
+        try {
+             const result = await getFile('posts.json');
+             if (result) {
+                 post = result.find(p => String(p.id) === String(id));
+             }
+        } catch (e) {}
     }
 
-    // Find the specific post
-    const post = file.data.find(p => p.id === id);
-
     if (!post) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ error: 'Post not found' })
-      };
+      return { statusCode: 404, body: JSON.stringify({ error: 'Post not found' }) };
     }
 
     return {
       statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=60' // Cache for 1 minute
-      },
+      headers,
       body: JSON.stringify(post)
     };
 
   } catch (error) {
-    console.error(`[API] Get Post Error (${id}):`, error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to fetch post' })
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
-}
+};

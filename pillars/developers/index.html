@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developers — OpenWorld</title>
+  <meta name="description" content="OpenWorld API Explorer." >
+  
+  <link rel="stylesheet" href="/src/styles/core.css">
+  <link rel="stylesheet" href="/src/styles/developers.css">
+</head>
+<body>
+  
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="container nav__inner">
+      <a href="/" class="nav__logo">
+        <span class="nav__mark">◈</span> OpenWorld <span class="nav__badge">Dev</span>
+      </a>
+      <ul class="nav__links">
+        <li><a href="/">Portal</a></li>
+        <li><a href="/pillars/community/">Community</a></li>
+      </ul>
+      <div id="userBadge"></div>
+    </div>
+  </nav>
+
+  <main class="container dev-container">
+    <header class="dev-header">
+      <h1 class="text-gradient">API Explorer</h1>
+      <p class="text-dim">Interact directly with the OpenWorld neural network.</p>
+    </header>
+
+    <div class="api-console">
+      <div class="console-controls">
+        <select id="methodSelect" class="console-input method-select">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+        </select>
+        <div class="url-input-wrapper">
+          <span class="url-prefix">/.netlify/functions/</span>
+          <input type="text" id="endpointInput" class="console-input url-input" value="get-feed" placeholder="endpoint">
+        </div>
+        <button id="sendBtn" class="console-btn">Run</button>
+      </div>
+
+      <div class="console-section" id="bodySection" style="display: none;">
+        <label class="console-label">Request Body (JSON)</label>
+        <textarea id="bodyInput" class="console-editor" rows="6">{
+  "limit": 5
+}</textarea>
+      </div>
+
+      <div class="console-section">
+        <div class="console-header">
+          <label class="console-label">Response</label>
+          <span id="statusCode" class="status-badge"></span>
+          <span id="timingBadge" class="timing-badge"></span>
+        </div>
+        <pre id="responseOutput" class="console-output">// Response will appear here...</pre>
+      </div>
+    </div>
+
+    <div class="endpoints-list">
+      <h3>Quick Presets</h3>
+      <div class="preset-grid">
+        <button class="preset-card" data-method="GET" data-endpoint="get-feed">
+          <span class="method get">GET</span>
+          <span class="endpoint">get-feed</span>
+        </button>
+        <button class="preset-card" data-method="GET" data-endpoint="get-notifications">
+          <span class="method get">GET</span>
+          <span class="endpoint">get-notifications</span>
+        </button>
+        <button class="preset-card" data-method="POST" data-endpoint="create-post" data-body='{ "status": "Hello via API" }'>
+          <span class="method post">POST</span>
+          <span class="endpoint">create-post</span>
+        </button>
+        <button class="preset-card" data-method="GET" data-endpoint="get-repos">
+          <span class="method get">GET</span>
+          <span class="endpoint">get-repos</span>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module" src="/src/developers.js"></script>
+</body>
+</html>

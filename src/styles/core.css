@@ -457,3 +457,31 @@ input::placeholder, textarea::placeholder {
   z-index: 2000;
   backdrop-filter: blur(2px);
 }
+
+/* Footer */
+.footer {
+  padding: var(--sp-8) 0;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  margin-top: var(--sp-8);
+  opacity: 0.6;
+}
+
+.footer__separator {
+  margin: 0 var(--sp-2);
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.footer__link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+  border-bottom: 1px dotted transparent;
+}
+
+.footer__link:hover {
+  color: var(--world-blue);
+  border-bottom-color: var(--world-blue);
+}

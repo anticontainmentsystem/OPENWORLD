@@ -1,0 +1,229 @@
+/* Developers Portal Styles */
+
+.dev-container {
+  padding-top: var(--sp-6);
+  padding-bottom: var(--sp-8);
+  max-width: 800px;
+}
+
+.dev-header {
+  margin-bottom: var(--sp-6);
+}
+
+.dev-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: var(--sp-2);
+}
+
+/* API Console */
+.api-console {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  margin-bottom: var(--sp-6);
+}
+
+.console-controls {
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+.console-input {
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.method-select {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.url-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding-left: var(--sp-3);
+  overflow: hidden;
+}
+
+.url-prefix {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.url-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding-left: 2px;
+}
+
+.url-input:focus {
+  outline: none;
+}
+
+.console-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.console-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.console-btn.small {
+  padding: var(--sp-1) var(--sp-3);
+  font-size: 0.8rem;
+}
+
+.console-section {
+  padding: var(--sp-3);
+  border-top: 1px solid var(--border);
+}
+
+.console-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-2);
+}
+
+.console-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.console-editor {
+  width: 100%;
+  background: var(--surface-0);
+  border: 1px solid var(--border);
+  color: var(--text-code);
+  font-family: var(--font-mono);
+  padding: var(--sp-3);
+  border-radius: var(--radius-sm);
+  resize: vertical;
+  font-size: 0.9rem;
+}
+
+.console-output {
+  background: #0d1117; /* GitHub dark bg style */
+  color: #e6edf3;
+  padding: var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Status Badges */
+.status-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.status-badge.success {
+  background: rgba(var(--moss-rgb), 0.2);
+  color: var(--moss-400);
+}
+
+.status-badge.error {
+  background: rgba(255, 0, 0, 0.2);
+  color: #ff6b6b;
+}
+
+.timing-badge {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+/* Syntax Highlighting */
+.string { color: #a5d6ff; }
+.number { color: #79c0ff; }
+.boolean { color: #56d364; }
+.null { color: #ff7b72; }
+.key { color: #d2a8ff; }
+
+/* Presets Grid */
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+.preset-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  padding: var(--sp-3);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.preset-card:hover {
+  background: var(--surface-2);
+  transform: translateY(-2px);
+}
+
+.endpoint {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.method {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.method.get { background: rgba(var(--world-blue-rgb), 0.2); color: var(--world-blue); }
+.method.post { background: rgba(var(--moss-rgb), 0.2); color: var(--moss-400); }
+
+/* Navigation Badge */
+.nav__badge {
+  font-size: 0.7rem;
+  background: var(--surface-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--text-muted);
+  margin-left: var(--sp-2);
+}

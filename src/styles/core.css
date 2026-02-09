@@ -35,6 +35,7 @@
   --accent-hover: var(--copper-400);
   --secondary: var(--moss-500);
   --secondary-hover: var(--moss-400);
+  --world-blue: #00A3FF; /* Vibrant Cyan/Blue for OpenWorld identity */
   
   /* Spacing - Minimal */
   --sp-1: 4px;

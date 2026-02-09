@@ -140,7 +140,19 @@ class PostsService {
       console.log('[Posts] Loading from GitHub...');
       // Use token if available to avoid rate limits
       const token = auth.getAccessToken();
+      const user = auth.getUser();
       this.posts = await postsAPI.getAll(token);
+      
+      // Process reactions state for current user
+      if (user) {
+        const userId = String(user.id);
+        this.posts.forEach(post => {
+          if (post.reactedBy && post.reactedBy.fire && Array.isArray(post.reactedBy.fire)) {
+            post.hasReacted = post.reactedBy.fire.includes(userId);
+          }
+        });
+      }
+      
       this.loaded = true;
       console.log('[Posts] Loaded', this.posts.length, 'posts');
     } catch (error) {
@@ -222,6 +234,14 @@ class PostsService {
       String(p.userId) === String(userIdOrName) || 
       (p.username && p.username.toLowerCase() === target)
     );
+  }
+
+  getMyFireCount() {
+    const user = auth.getUser();
+    if (!user) return 0;
+    // Count posts where currentUser has reacted with 'fire'
+    // reliance on hasReacted property set during load/react
+    return this.posts.filter(p => p.hasReacted).length;
   }
 
   async createPost({ content, type = 'thought', repo = null, code = null, activity = null, media = null }) {

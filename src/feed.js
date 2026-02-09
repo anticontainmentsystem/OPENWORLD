@@ -13,6 +13,7 @@ import { renderPostCard, escapeHtml, convertGitHubUrl } from './components/PostC
 import { ConfirmModal } from './components/ConfirmModal.js';
 import { initCursorTrail } from './components/CursorTrail.js';
 import { RecommendationEngine } from './services/RecommendationEngine.js';
+import { NotificationDropdown } from './components/NotificationDropdown.js';
 
 // Initialize Easter Eggs
 initCursorTrail();
@@ -184,9 +185,15 @@ async function updateAuthUI(user) {
     const statPosts = document.getElementById('statPosts');
     if (statPosts) {
       // Use efficient length check
-      const userPosts = posts.getPostsByUser(user.id);
+      // Use username fallback like profile.js
+      const userPosts = posts.getPostsByUser(user.username || user.id);
       // console.log('[Feed] Updating post count for', user.username, 'Count:', userPosts.length);
       statPosts.textContent = userPosts.length;
+    }
+    
+    const statFires = document.getElementById('statFires');
+    if (statFires) {
+      statFires.textContent = posts.getMyFireCount();
     }
     
     // Load repos for picker
@@ -219,11 +226,21 @@ function renderUserBadge(user) {
       <ul class="user-badge__dropdown-menu">
         <li><a href="/pillars/community/profile.html" class="user-badge__dropdown-item">👤 Profile</a></li>
         <li><a href="/pillars/community/profile.html?edit=1" class="user-badge__dropdown-item">✏️ Edit Profile</a></li>
+        
+        <!-- Notification Container -->
+        <li id="notificationContainer"></li>
+        
         <li class="user-badge__dropdown-divider"></li>
         <li><button class="user-badge__dropdown-item" id="logoutBtn">Sign Out</button></li>
       </ul>
     </div>
   `;
+  
+  // Init Notification Dropdown
+  const container = document.getElementById('notificationContainer');
+  if(container) {
+     new NotificationDropdown(container);
+  }
   
   document.getElementById('userBadgeTrigger').addEventListener('click', (e) => {
     e.stopPropagation();

@@ -31,77 +31,135 @@
       <p class="text-dim">Interact directly with the OpenWorld social protocol.</p>
     </header>
 
-    <div class="api-console">
-      <div class="console-context" id="consoleContext" style="display: none;">
-        <span class="context-item"><span class="context-label">User:</span> <span id="contextUser" class="text-copper">...</span></span>
-        <span class="context-item"><span class="context-label">Mode:</span> <span class="text-moss">Live (Production)</span></span>
-        <span class="context-item"><span class="context-label">Tailored:</span> <span class="text-dim">True</span></span>
-      </div>
-      <div class="console-controls">
-        <select id="methodSelect" class="console-input method-select">
-          <option value="GET">GET</option>
-          <option value="POST">POST</option>
-        </select>
-        <div class="url-input-wrapper">
-          <span class="url-prefix">/.netlify/functions/</span>
-          <input type="text" id="endpointInput" class="console-input url-input" value="get-feed" placeholder="endpoint">
-        </div>
-        <button id="sendBtn" class="console-btn">Run</button>
-      </div>
+    <div class="dev-layout">
+      <!-- Left Column: Console -->
+      <section class="dev-console-area">
+        <div class="api-console">
+          <div class="console-context" id="consoleContext" style="display: none;">
+            <span class="context-item"><span class="context-label">User:</span> <span id="contextUser" class="text-copper">...</span></span>
+            <span class="context-item"><span class="context-label">Mode:</span> <span class="text-moss">Live (Production)</span></span>
+            <span class="context-item"><span class="context-label">Tailored:</span> <span class="text-dim">True</span></span>
+          </div>
+          <div class="console-controls">
+            <select id="methodSelect" class="console-input method-select">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+            </select>
+            <div class="url-input-wrapper">
+              <span class="url-prefix">/.netlify/functions/</span>
+              <input type="text" id="endpointInput" class="console-input url-input" value="get-feed" placeholder="endpoint">
+            </div>
+            <button id="sendBtn" class="console-btn">Run</button>
+          </div>
 
-      <div class="console-section" id="bodySection" style="display: none;">
-        <label class="console-label">Request Body (JSON)</label>
-        <textarea id="bodyInput" class="console-editor" rows="6">{
+          <div class="console-section" id="bodySection" style="display: none;">
+            <label class="console-label">Request Body (JSON)</label>
+            <textarea id="bodyInput" class="console-editor" rows="6">{
   "limit": 5
 }</textarea>
-      </div>
+          </div>
 
-      <div class="console-section">
-        <div class="console-header">
-          <label class="console-label">Response</label>
-          <span id="statusCode" class="status-badge"></span>
-          <span id="timingBadge" class="timing-badge"></span>
+          <div class="console-section">
+            <div class="console-header">
+              <label class="console-label">Response</label>
+              <span id="statusCode" class="status-badge"></span>
+              <span id="timingBadge" class="timing-badge"></span>
+            </div>
+            <div id="diagnosticsArea" class="diagnostics-area" style="display: none;"></div>
+            <pre id="responseOutput" class="console-output">// Response will appear here...</pre>
+          </div>
         </div>
-        <div id="diagnosticsArea" class="diagnostics-area" style="display: none;"></div>
-        <pre id="responseOutput" class="console-output">// Response will appear here...</pre>
-      </div>
-    </div>
 
-    <div class="endpoints-list">
-      <h3>Quick Presets</h3>
-      <div class="preset-grid">
-        <button class="preset-card" data-method="GET" data-endpoint="get-feed">
-          <div class="preset-header">
-            <span class="method get">GET</span>
-            <span class="endpoint">get-feed</span>
+        <div class="endpoints-list">
+          <h3>Quick Presets</h3>
+          <div class="preset-grid">
+            <button class="preset-card" data-method="GET" data-endpoint="get-feed">
+              <div class="preset-header">
+                <span class="method get">GET</span>
+                <span class="endpoint">get-feed</span>
+              </div>
+              <p class="preset-desc">Fetch the latest posts from the global timeline.</p>
+            </button>
+            
+            <button class="preset-card" data-method="GET" data-endpoint="get-notifications">
+              <div class="preset-header">
+                <span class="method get">GET</span>
+                <span class="endpoint">get-notifications</span>
+              </div>
+              <p class="preset-desc">See your latest mentions, replies, and follows.</p>
+            </button>
+            
+            <button class="preset-card" data-method="POST" data-endpoint="create-post" data-body='{ "content": "Hello via API", "type": "thought" }'>
+              <div class="preset-header">
+                <span class="method post">POST</span>
+                <span class="endpoint">create-post</span>
+              </div>
+              <p class="preset-desc">Publish a new "thought" to the feed.</p>
+            </button>
+            
+            <button class="preset-card" data-method="GET" data-endpoint="get-repos">
+              <div class="preset-header">
+                <span class="method get">GET</span>
+                <span class="endpoint">get-repos</span>
+              </div>
+              <p class="preset-desc">List repositories from your GitHub account.</p>
+            </button>
           </div>
-          <p class="preset-desc">Fetch the latest posts from the global timeline.</p>
-        </button>
+        </div>
+      </section>
+
+      <!-- Right Column: Tools & Docs -->
+      <aside class="dev-tools-area">
         
-        <button class="preset-card" data-method="GET" data-endpoint="get-notifications">
-          <div class="preset-header">
-            <span class="method get">GET</span>
-            <span class="endpoint">get-notifications</span>
+        <!-- Universal Search -->
+        <div class="tool-section">
+          <h3>Universal Search &nbsp;<span class="text-dim text-xs">(Beta)</span></h3>
+          <p class="text-dim text-sm mb-2">Search Users, Repos, and Data IDs.</p>
+          <div class="search-box">
+             <input type="text" id="uniSearchInput" class="console-input w-full" placeholder="username, repo, or keyword...">
+             <button id="uniSearchBtn" class="console-btn small">Search</button>
           </div>
-          <p class="preset-desc">See your latest mentions, replies, and follows.</p>
-        </button>
-        
-        <button class="preset-card" data-method="POST" data-endpoint="create-post" data-body='{ "content": "Hello via API", "type": "thought" }'>
-          <div class="preset-header">
-            <span class="method post">POST</span>
-            <span class="endpoint">create-post</span>
+          <div id="uniSearchResults" class="search-results">
+            <!-- Results injected here -->
           </div>
-          <p class="preset-desc">Publish a new "thought" to the feed.</p>
-        </button>
-        
-        <button class="preset-card" data-method="GET" data-endpoint="get-repos">
-          <div class="preset-header">
-            <span class="method get">GET</span>
-            <span class="endpoint">get-repos</span>
+        </div>
+
+        <!-- Inline Documentation -->
+        <div class="tool-section docs-section">
+          <h3>API Reference</h3>
+          <div class="docs-list">
+            <details open>
+              <summary><span class="method get">GET</span> get-feed</summary>
+              <p>Returns a list of recent posts.</p>
+              <ul class="param-list">
+                <li><code>limit</code> (query): Max posts (def: 20)</li>
+              </ul>
+            </details>
+            <details>
+              <summary><span class="method post">POST</span> create-post</summary>
+              <p>Creates a new post on the timeline.</p>
+              <ul class="param-list">
+                <li><code>content</code> (body): Text content</li>
+                <li><code>type</code> (body): 'thought', 'project', etc.</li>
+              </ul>
+            </details>
+            <details>
+              <summary><span class="method get">GET</span> get-profile</summary>
+              <p>Get public profile data for a user.</p>
+              <ul class="param-list">
+                <li><code>username</code> (query): Target user</li>
+              </ul>
+            </details>
+             <details>
+              <summary><span class="method get">GET</span> search-repos</summary>
+              <p>Search public repositories.</p>
+              <ul class="param-list">
+                <li><code>q</code> (query): Search term</li>
+              </ul>
+            </details>
           </div>
-          <p class="preset-desc">List repositories from your GitHub account.</p>
-        </button>
-      </div>
+        </div>
+      </aside>
     </div>
 
   </main>

@@ -18,6 +18,9 @@ const responseOutput = document.getElementById('responseOutput');
 const diagnosticsArea = document.getElementById('diagnosticsArea');
 const statusCode = document.getElementById('statusCode');
 const timingBadge = document.getElementById('timingBadge');
+const uniSearchInput = document.getElementById('uniSearchInput');
+const uniSearchBtn = document.getElementById('uniSearchBtn');
+const uniSearchResults = document.getElementById('uniSearchResults');
 
 // State
 let startTime = 0;
@@ -36,10 +39,16 @@ function setupEventListeners() {
   // Send Request
   sendBtn.addEventListener('click', executeRequest);
 
+  // Universal Search
+  uniSearchBtn.addEventListener('click', performUniversalSearch);
+  uniSearchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') performUniversalSearch();
+  });
+
   // Presets
   document.querySelectorAll('.preset-card').forEach(card => {
+    // ... existing preset logic ...
     card.addEventListener('click', () => {
-      // populate logic
       methodSelect.value = card.dataset.method;
       const endpoint = card.dataset.endpoint;
       endpointInput.value = endpoint;
@@ -61,6 +70,117 @@ function setupEventListeners() {
     });
   });
 }
+
+// ... existing updateBodyVisibility and initAuth ...
+
+// Universal Search Logic
+async function performUniversalSearch() {
+  const query = uniSearchInput.value.trim();
+  if (!query) return;
+
+  uniSearchBtn.textContent = '...';
+  uniSearchBtn.disabled = true;
+  uniSearchResults.innerHTML = '<p class="text-dim text-xs">Searching OpenWorld...</p>';
+
+  try {
+    const results = [];
+
+    // Parallel Search
+    const [profileRes, reposRes] = await Promise.all([
+      // 1. Search Users (via get-profile)
+      fetch(`/.netlify/functions/get-profile?username=${query}`),
+      // 2. Search Repos
+      fetch(`/.netlify/functions/search-repos?q=${query}`)
+    ]);
+
+    // Process User
+    if (profileRes.ok) {
+      const user = await profileRes.json();
+      results.push({
+        type: 'user',
+        title: user.login || query,
+        data: user
+      });
+    }
+
+    // Process Repos
+    if (reposRes.ok) {
+      const repos = await reposRes.json();
+      if (Array.isArray(repos) && repos.length > 0) {
+        repos.forEach(repo => {
+          results.push({
+            type: 'repo',
+            title: repo.name,
+            data: repo
+          });
+        });
+      }
+    }
+
+    // Render
+    renderSearchResults(results);
+
+  } catch (error) {
+    uniSearchResults.innerHTML = `<p class="text-error text-xs">Search failed: ${error.message}</p>`;
+  } finally {
+    uniSearchBtn.textContent = 'Search';
+    uniSearchBtn.disabled = false;
+  }
+}
+
+function renderSearchResults(results) {
+  if (results.length === 0) {
+    uniSearchResults.innerHTML = '<p class="text-dim text-xs">No results found.</p>';
+    return;
+  }
+
+  uniSearchResults.innerHTML = results.map((item, index) => `
+    <div class="result-item" onclick="loadResultIntoConsole(${index})">
+      <span class="result-type ${item.type}">${item.type}</span>
+      <div class="result-title">${item.title}</div>
+      ${renderstats(item)}
+    </div>
+  `).join('');
+
+  // Store results globally or attaches to DOM for click handler? 
+  // Easy hack: attach to window for onclick (not best practice but works for simple console)
+  window.lastSearchResults = results;
+}
+
+function renderstats(item) {
+  if (item.type === 'repo') {
+    return `<div class="mt-1">
+      <span class="result-stat">★ ${item.stargazers_count || 0}</span>
+      <span class="result-stat">🍴 ${item.forks_count || 0}</span>
+    </div>`;
+  }
+  if (item.type === 'user') {
+    return `<div class="mt-1">
+      <span class="result-stat">${item.public_repos || 0} Repos</span>
+      <span class="result-stat">${item.followers || 0} Followers</span>
+    </div>`;
+  }
+  return '';
+}
+
+// Global handler for result clicks
+window.loadResultIntoConsole = (index) => {
+  const item = window.lastSearchResults[index];
+  if (!item) return;
+
+  // Populate Console
+  responseOutput.innerHTML = syntaxHighlight(JSON.stringify(item.data, null, 2));
+  responseOutput.scrollIntoView({ behavior: 'smooth' });
+  
+  // Update badges
+  const statusCode = document.getElementById('statusCode'); // Re-selecting here safely
+  if(statusCode) {
+    statusCode.textContent = '200 OK (Preview)';
+    statusCode.className = 'status-badge success';
+  }
+};
+
+// ... existing executeRequest and checkDiagnostics ...
 
 function updateBodyVisibility() {
   const method = methodSelect.value;

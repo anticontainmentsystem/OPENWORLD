@@ -244,6 +244,13 @@ class PostsService {
     return this.posts.filter(p => p.hasReacted).length;
   }
 
+  getFiresReceived() {
+    const user = auth.getUser();
+    if (!user) return 0;
+    const myPosts = this.getPostsByUser(user.username || user.id);
+    return myPosts.reduce((sum, p) => sum + (p.reactions?.fire || 0), 0);
+  }
+
   async createPost({ content, type = 'thought', repo = null, code = null, activity = null, media = null }) {
     const user = auth.getUser();
     if (!user) throw new Error('Not logged in');

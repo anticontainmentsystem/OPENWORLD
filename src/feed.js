@@ -4,6 +4,7 @@
  */
 
 import { auth, posts, formatRelativeTime, fetchUserRepos } from './services/auth.js';
+import { usersAPI } from './services/github-data.js';
 import { GithubBrowser } from './components/GithubBrowser.js';
 import { CodeEditor } from './components/code-editor.js';
 import { ActivityPicker } from './components/ActivityPicker.js';
@@ -135,6 +136,10 @@ function cancelEditing() {
 let selectedMedia = null; // { type: 'image'|'video', url: string }
 let codeEditor = null;
 
+// Throttle for periodic profile refresh (followers sync)
+let lastProfileFetch = 0;
+const PROFILE_FETCH_INTERVAL = 60000; // 60s
+
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
   initAuth();
@@ -181,19 +186,39 @@ async function updateAuthUI(user) {
     document.getElementById('composerAvatar').src = user.avatar;
     const statFollowing = document.getElementById('statFollowing');
     if (statFollowing) statFollowing.textContent = user.following || 0;
-    
+
+    const statFollowers = document.getElementById('statFollowers');
+    if (statFollowers) statFollowers.textContent = user.followers || 0;
+
     const statPosts = document.getElementById('statPosts');
     if (statPosts) {
-      // Use efficient length check
-      // Use username fallback like profile.js
       const userPosts = posts.getPostsByUser(user.username || user.id);
-      // console.log('[Feed] Updating post count for', user.username, 'Count:', userPosts.length);
       statPosts.textContent = userPosts.length;
     }
-    
+
     const statFires = document.getElementById('statFires');
     if (statFires) {
-      statFires.textContent = posts.getMyFireCount();
+      statFires.textContent = posts.getFiresReceived();
+    }
+
+    // Periodically refresh follower count from server
+    const now = Date.now();
+    if (now - lastProfileFetch > PROFILE_FETCH_INTERVAL) {
+      lastProfileFetch = now;
+      const token = auth.getAccessToken();
+      if (token) {
+        usersAPI.get(user.username, token).then(freshProfile => {
+          if (freshProfile && freshProfile.followers !== undefined) {
+            const el = document.getElementById('statFollowers');
+            if (el) el.textContent = freshProfile.followers || 0;
+            const currentUser = auth.getUser();
+            if (currentUser && currentUser.followers !== freshProfile.followers) {
+              currentUser.followers = freshProfile.followers;
+              localStorage.setItem('openworld_user', JSON.stringify(currentUser));
+            }
+          }
+        }).catch(err => console.error('[Feed] Profile refresh error:', err));
+      }
     }
     
     // Load repos for picker

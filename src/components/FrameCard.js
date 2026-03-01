@@ -50,7 +50,7 @@ export class FrameCard {
     el.innerHTML = `
       <div class="frame-card__header">
         <span class="frame-card__icon">${f.icon || '📡'}</span>
-        <span class="frame-card__category" style="color: ${catColor}">${f.category}</span>
+        <span class="frame-card__category" style="color: ${catColor}">${f.category}${f.subcategory ? ` / ${this.escapeHtml(f.subcategory)}` : ''}</span>
         ${isArchived ? '<span class="frame-card__status">archived</span>' : ''}
       </div>
       <h3 class="frame-card__title">${this.escapeHtml(f.title)}</h3>

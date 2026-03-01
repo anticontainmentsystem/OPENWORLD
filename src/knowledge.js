@@ -37,11 +37,9 @@ function initAuth() {
           <span style="font-size:0.85rem;">${user.username}</span>
         </div>
       `;
-      if (createBtn) createBtn.style.display = 'inline-flex';
     } else {
       userBadge.innerHTML = `<button id="loginBtn" class="btn btn--primary btn--sm">Sign In</button>`;
       document.getElementById('loginBtn')?.addEventListener('click', () => auth.login());
-      if (createBtn) createBtn.style.display = 'none';
     }
   });
   auth.getUser();

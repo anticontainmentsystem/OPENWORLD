@@ -62,6 +62,11 @@ export class CreateFrameModal {
               `).join('')}
             </div>
           </div>
+          <div class="form-group" id="subcategoryGroup" style="display: none;">
+            <label class="form-label">Subcategory <span class="form-hint-inline">(optional — refine within the main category)</span></label>
+            <input type="text" class="form-input" id="frameSubcategory" placeholder="e.g. Embedded, Watercolor, Jazz Theory" maxlength="40">
+            <span class="form-hint">Custom niche under the selected category</span>
+          </div>
           <div class="form-group">
             <label class="form-label">Tags <span class="form-hint-inline">(optional, up to 5)</span></label>
             <input type="text" class="form-input" id="frameTags" placeholder="rust, embedded, hardware (comma-separated)">
@@ -103,12 +108,14 @@ export class CreateFrameModal {
       if (e.target === this.overlay) this.close();
     };
 
-    // Category selection
+    // Category selection — reveal subcategory field on pick
     this.overlay.querySelectorAll('.category-chip').forEach(chip => {
       chip.onclick = () => {
         this.overlay.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         this.selectedCategory = chip.dataset.cat;
+        const subGroup = this.overlay.querySelector('#subcategoryGroup');
+        if (subGroup) subGroup.style.display = 'block';
       };
     });
 
@@ -125,6 +132,7 @@ export class CreateFrameModal {
     const title = this.overlay.querySelector('#frameTitle').value.trim();
     const description = this.overlay.querySelector('#frameDesc').value.trim();
     const category = this.selectedCategory;
+    const subcategory = this.overlay.querySelector('#frameSubcategory').value.trim();
     const tagsRaw = this.overlay.querySelector('#frameTags').value.trim();
     const icon = this.overlay.querySelector('#frameIcon').value.trim();
     const errorEl = this.overlay.querySelector('#createError');
@@ -157,7 +165,7 @@ export class CreateFrameModal {
     createBtn.textContent = 'Creating...';
 
     try {
-      const result = await framesAPI.create({ title, description, category, tags, icon: icon || undefined });
+      const result = await framesAPI.create({ title, description, category, subcategory: subcategory || undefined, tags, icon: icon || undefined });
       this.close();
       this.onCreated(result);
     } catch (error) {

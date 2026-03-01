@@ -68,7 +68,7 @@ export const handler = async (event) => {
     if (action === 'edit') {
       if (!isCreator) return { statusCode: 403, body: JSON.stringify({ error: 'Only the frame creator can edit' }) };
 
-      const { title, description, category, tags, icon } = payload;
+      const { title, description, category, subcategory, tags, icon } = payload;
 
       // Store version
       if (!frame.versions) frame.versions = [];
@@ -77,6 +77,7 @@ export const handler = async (event) => {
         title: frame.title,
         description: frame.description,
         category: frame.category,
+        subcategory: frame.subcategory,
         tags: frame.tags,
         icon: frame.icon
       });
@@ -84,6 +85,7 @@ export const handler = async (event) => {
       if (title) frame.title = title.trim();
       if (description) frame.description = description.trim();
       if (category) frame.category = category;
+      if (subcategory !== undefined) frame.subcategory = subcategory ? subcategory.trim().substring(0, 40) : null;
       if (tags) frame.tags = tags.slice(0, 5).map(t => t.trim().toLowerCase());
       if (icon) frame.icon = icon;
       frame.updatedAt = now;

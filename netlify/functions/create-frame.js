@@ -64,7 +64,7 @@ export const handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
     }
 
-    const { title, description, category, tags, icon } = payload;
+    const { title, description, category, subcategory, tags, icon } = payload;
 
     // Validate
     if (!title || title.trim().length < 3 || title.trim().length > 100) {
@@ -87,6 +87,7 @@ export const handler = async (event) => {
       title: title.trim(),
       description: description.trim(),
       category,
+      subcategory: subcategory ? subcategory.trim().substring(0, 40) : null,
       tags: Array.isArray(tags) ? tags.slice(0, 5).map(t => t.trim().toLowerCase()) : [],
       icon: icon || '📡',
       creatorId: String(user.id),

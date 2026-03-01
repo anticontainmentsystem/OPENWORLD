@@ -14,6 +14,7 @@ export default defineConfig({
         soundscape: resolve(__dirname, "pillars/soundscape/index.html"),
         interactive: resolve(__dirname, "pillars/interactive-art/index.html"),
         knowledge: resolve(__dirname, "pillars/knowledge/index.html"),
+        frame: resolve(__dirname, "pillars/knowledge/frame.html"),
         community: resolve(__dirname, "pillars/community/index.html"),
         profile: resolve(__dirname, "pillars/community/profile.html"),
         developers: resolve(__dirname, "pillars/developers/index.html"),

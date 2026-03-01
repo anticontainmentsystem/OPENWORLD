@@ -4,68 +4,67 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Portal — OpenWorld</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="description" content="Community knowledge frames on OpenWorld. Create, explore, and contribute to living workspaces.">
   <link rel="stylesheet" href="/src/styles/core.css">
-  <link rel="stylesheet" href="/src/styles/pillar.css">
+  <link rel="stylesheet" href="/src/styles/knowledge.css">
+  <link rel="stylesheet" href="/src/styles/user-badge.css">
 </head>
-<body class="pillar--knowledge">
-  <nav class="ow-nav">
-    <div class="ow-container ow-nav__inner">
-      <a href="/" class="ow-nav__logo">
-        <span class="ow-nav__logo-mark">◈</span>
-        <span class="ow-nav__logo-text">OpenWorld</span>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="container nav__inner">
+      <a href="/" class="nav__logo">
+        <span class="nav__mark">◈</span> OpenWorld
       </a>
-      <ul class="ow-nav__links">
-        <li><a href="/">← Portal</a></li>
+      <ul class="nav__links">
+        <li><a href="/">Portal</a></li>
+        <li><a href="/pillars/community/">Community</a></li>
+        <li><a href="/pillars/knowledge/" style="color: var(--text);">Knowledge</a></li>
       </ul>
+      <div class="user-badge" id="userBadge"></div>
     </div>
   </nav>
 
-  <header class="pillar-hero">
-    <div class="ow-container">
-      <div class="pillar-hero__icon">📡</div>
-      <h1 class="pillar-hero__title">Knowledge Portal</h1>
-      <p class="pillar-hero__tagline">The memory of the organism</p>
-    </div>
-  </header>
+  <div class="knowledge-layout">
 
-  <main class="ow-section">
-    <div class="ow-container">
-      <section class="pillar-intro">
-        <h2>Shared Memory, Shared Learning</h2>
-        <p>Not tutorials—transmissions. A place where process, failure, theory, and intent are archived. Knowledge is not polished marketing. It's honest memory.</p>
-        
-        <div class="pillar-principles">
-          <div class="pillar-principle">
-            <h3>Transparent Thinking</h3>
-            <p>Behind-the-scenes exposed. Failures recorded alongside successes.</p>
-          </div>
-          <div class="pillar-principle">
-            <h3>AI as Archivist</h3>
-            <p>Helps organize and retrieve knowledge. Acts as archivist—not authority.</p>
-          </div>
-          <div class="pillar-principle">
-            <h3>Why Over How</h3>
-            <p>"Why this exists" over "how to copy it". Intent matters more than instructions.</p>
-          </div>
+    <!-- Header -->
+    <header class="knowledge-header">
+      <div class="knowledge-header__top">
+        <div>
+          <h1>Knowledge Portal</h1>
+          <p class="knowledge-header__tagline">Living workspaces for every discipline. Create a frame, build knowledge together.</p>
         </div>
-      </section>
+        <button class="btn btn--primary" id="createFrameBtn" style="display: none;">+ Create Frame</button>
+      </div>
+    </header>
 
-      <section class="pillar-projects">
-        <h2>Archives</h2>
-        <p class="ow-text-muted">Coming soon — case studies, dev logs, audio/visual breakdowns.</p>
-      </section>
+    <!-- Toolbar -->
+    <div class="knowledge-toolbar">
+      <input type="text" class="knowledge-search" id="knowledgeSearch" placeholder="Search frames...">
+      <div class="category-tabs" id="categoryTabs">
+        <button class="category-tab active" data-category="all">All</button>
+        <button class="category-tab" data-category="coding">Coding</button>
+        <button class="category-tab" data-category="art">Art</button>
+        <button class="category-tab" data-category="music">Music</button>
+        <button class="category-tab" data-category="writing">Writing</button>
+        <button class="category-tab" data-category="engineering">Engineering</button>
+        <button class="category-tab" data-category="photography">Photography</button>
+        <button class="category-tab" data-category="design">Design</button>
+        <button class="category-tab" data-category="science">Science</button>
+        <button class="category-tab" data-category="craft">Craft</button>
+        <button class="category-tab" data-category="other">Other</button>
+      </div>
+      <span class="text-dim" style="font-size: 0.75rem; white-space: nowrap;" id="frameCount"></span>
     </div>
-  </main>
 
-  <footer class="ow-footer">
-    <div class="ow-container">
-      <p class="ow-footer__meta">◈ OpenWorld — Knowledge Portal</p>
+    <!-- Frames Grid -->
+    <div class="frames-grid" id="framesGrid">
+      <p class="text-dim" style="padding: var(--sp-4);">Loading frames...</p>
     </div>
-  </footer>
 
-  <script type="module" src="/src/main.js"></script>
+  </div>
+
+  <script type="module" src="/src/knowledge.js"></script>
 </body>
 </html>

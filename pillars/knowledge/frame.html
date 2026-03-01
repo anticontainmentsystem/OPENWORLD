@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frame — Knowledge Portal — OpenWorld</title>
+  <link rel="stylesheet" href="/src/styles/core.css">
+  <link rel="stylesheet" href="/src/styles/knowledge.css">
+  <link rel="stylesheet" href="/src/styles/frame.css">
+  <link rel="stylesheet" href="/src/styles/user-badge.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="container nav__inner">
+      <a href="/" class="nav__logo">
+        <span class="nav__mark">◈</span> OpenWorld
+      </a>
+      <ul class="nav__links">
+        <li><a href="/">Portal</a></li>
+        <li><a href="/pillars/knowledge/">Knowledge</a></li>
+      </ul>
+      <div class="user-badge" id="userBadge"></div>
+    </div>
+  </nav>
+
+  <div class="frame-layout">
+    <div id="frameContent">
+      <div class="frame-loading">Loading frame...</div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/frame.js"></script>
+</body>
+</html>

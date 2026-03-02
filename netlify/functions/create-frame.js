@@ -4,7 +4,21 @@
  */
 import { readData, writeData } from './utils/gh.js';
 
-const ALLOWED_CATEGORIES = ['coding', 'art', 'music', 'writing', 'engineering', 'photography', 'design', 'science', 'craft', 'other'];
+const ALLOWED_CATEGORIES = [
+  'coding', 'art', 'music', 'writing', 'engineering',
+  'photography', 'design', 'science', 'craft',
+  'performance', 'film', 'games', 'light-art', 'mixed-media',
+  'architecture', 'cuisine', 'language', 'nature', 'wellness',
+  'other'
+];
+
+// Main category names (IDs + display labels) — subcategories can't duplicate these
+const MAIN_CATEGORY_NAMES = new Set([
+  ...ALLOWED_CATEGORIES,
+  'coding', 'art', 'music', 'writing', 'engineering', 'photography', 'design',
+  'science', 'craft', 'performance', 'film', 'games', 'light art', 'mixed media',
+  'architecture', 'cuisine', 'language', 'nature', 'wellness', 'other'
+]);
 
 // Rate limiting
 const rateLimits = new Map();
@@ -23,6 +37,68 @@ function slugify(text) {
     .replace(/-+/g, '-')
     .substring(0, 60)
     .replace(/^-|-$/g, '');
+}
+
+/**
+ * Normalize a subcategory string for duplicate detection.
+ * Strips plural 's', gerund '-ing' to noun stem, lowercases.
+ */
+function normalizeSubcategory(str) {
+  let s = str.toLowerCase().trim();
+  if (s.length > 3 && s.endsWith('s') && !s.endsWith('ss')) {
+    s = s.slice(0, -1);
+  }
+  if (s.length > 5 && s.endsWith('ing')) {
+    s = s.slice(0, -3);
+    if (s.length > 2 && s[s.length - 1] === s[s.length - 2]) {
+      s = s.slice(0, -1);
+    }
+    if (s.length > 2 && /[bcdfghjklmnpqrstvwxyz]$/.test(s)) {
+      s = s + 'e';
+    }
+  }
+  return s;
+}
+
+/**
+ * Validate a subcategory. Returns error string or null.
+ */
+function validateSubcategory(raw, existingSubcategories) {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (trimmed.length < 2) return 'Subcategory must be at least 2 characters';
+  if (trimmed.length > 40) return 'Subcategory must be under 40 characters';
+
+  const lower = trimmed.toLowerCase();
+
+  // Can't be a main category
+  if (MAIN_CATEGORY_NAMES.has(lower)) {
+    return `"${trimmed}" is already a main category`;
+  }
+
+  // Reject gerund (-ing) forms — require noun
+  if (lower.length > 5 && lower.endsWith('ing')) {
+    const stem = lower.slice(0, -3);
+    let noun = stem;
+    if (noun.length > 2 && noun[noun.length - 1] === noun[noun.length - 2]) {
+      noun = noun.slice(0, -1);
+    } else if (/[bcdfghjklmnpqrstvwxyz]$/.test(noun)) {
+      noun = noun + 'e';
+    }
+    return `Use the noun form: "${noun}" instead of "${trimmed}"`;
+  }
+
+  // Fuzzy duplicate check against existing subcategories in this category
+  if (existingSubcategories && existingSubcategories.length > 0) {
+    const normalized = normalizeSubcategory(trimmed);
+    for (const existing of existingSubcategories) {
+      if (normalizeSubcategory(existing) === normalized) {
+        return `A similar subcategory already exists: "${existing}"`;
+      }
+    }
+  }
+
+  return null;
 }
 
 export const handler = async (event) => {
@@ -77,6 +153,31 @@ export const handler = async (event) => {
       return { statusCode: 400, body: JSON.stringify({ error: `Category must be one of: ${ALLOWED_CATEGORIES.join(', ')}` }) };
     }
 
+    // Read shard (needed for both subcategory validation and saving)
+    const shardPath = getShardPath();
+    let shardResult;
+    try {
+      shardResult = await readData(shardPath);
+    } catch (e) {
+      shardResult = { data: [], sha: null };
+    }
+    const frames = shardResult?.data || [];
+    const sha = shardResult?.sha;
+
+    // Subcategory validation
+    let cleanSubcategory = null;
+    if (subcategory && subcategory.trim()) {
+      const existingSubs = frames
+        .filter(f => f.category === category && f.subcategory && !f.deleted)
+        .map(f => f.subcategory);
+
+      const subError = validateSubcategory(subcategory, existingSubs);
+      if (subError) {
+        return { statusCode: 400, body: JSON.stringify({ error: subError }) };
+      }
+      cleanSubcategory = subcategory.trim().substring(0, 40);
+    }
+
     const now = new Date().toISOString();
     const frameId = 'frame_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
@@ -87,7 +188,7 @@ export const handler = async (event) => {
       title: title.trim(),
       description: description.trim(),
       category,
-      subcategory: subcategory ? subcategory.trim().substring(0, 40) : null,
+      subcategory: cleanSubcategory,
       tags: Array.isArray(tags) ? tags.slice(0, 5).map(t => t.trim().toLowerCase()) : [],
       icon: icon || '📡',
       creatorId: String(user.id),
@@ -133,18 +234,7 @@ export const handler = async (event) => {
     };
 
     // Write index record to shard
-    const shardPath = getShardPath();
-    let result;
-    try {
-      result = await readData(shardPath);
-    } catch (e) {
-      result = { data: [], sha: null };
-    }
-
-    const frames = result?.data || [];
-    const sha = result?.sha;
     frames.unshift(indexRecord);
-
     await writeData(shardPath, frames, sha, `Create frame "${title}" by @${user.login}`);
 
     // Write body file

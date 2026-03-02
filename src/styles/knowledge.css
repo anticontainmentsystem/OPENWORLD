@@ -547,7 +547,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   width: 90%;
-  max-width: 540px;
+  max-width: 620px;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -656,7 +656,7 @@
 /* ── Category Grid (Modal) ── */
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--sp-1);
 }
 

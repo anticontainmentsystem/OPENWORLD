@@ -13,6 +13,16 @@ const CATEGORY_COLORS = {
   design: '#ff7b72',
   science: '#56d364',
   craft: '#e3b341',
+  performance: '#f0883e',
+  film: '#bc8cff',
+  games: '#3fb950',
+  'light-art': '#f8e45c',
+  'mixed-media': '#da70d6',
+  architecture: '#8b949e',
+  cuisine: '#f78166',
+  language: '#7ee8fa',
+  nature: '#7ee787',
+  wellness: '#f2cc60',
   other: '#8b949e'
 };
 

@@ -6,13 +6,13 @@
   <title>Profile — OpenWorld</title>
   <meta name="description" content="User profile on OpenWorld">
   
-  <script type="module" crossorigin src="/assets/profile-Cu7pgF61.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/auth-qTptiIUO.js">
-  <link rel="modulepreload" crossorigin href="/assets/PostCard-C_V0m3eT.js">
-  <link rel="modulepreload" crossorigin href="/assets/NotificationDropdown-BsIzgKD3.js">
-  <link rel="stylesheet" crossorigin href="/assets/PostCard-DsGUqkw0.css">
+  <script type="module" crossorigin src="/assets/profile-Bt8uGw9O.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/auth-BoBc4x_h.js">
+  <link rel="modulepreload" crossorigin href="/assets/ConfirmModal-DuGGNfyR.js">
+  <link rel="modulepreload" crossorigin href="/assets/NotificationDropdown-Cul7GRCK.js">
+  <link rel="stylesheet" crossorigin href="/assets/ConfirmModal-BMAgB7N8.css">
   <link rel="stylesheet" crossorigin href="/assets/profile-C6PP02-0.css">
-  <link rel="stylesheet" crossorigin href="/assets/core-D-M3okia.css">
+  <link rel="stylesheet" crossorigin href="/assets/core-51M-ox8s.css">
   <link rel="stylesheet" crossorigin href="/assets/github-browser-DdU8sufZ.css">
 </head>
 <body>
@@ -85,6 +85,7 @@
       <button class="profile-tab" data-tab="starred">Starred</button>
       <button class="profile-tab" data-tab="activity">Activity</button>
       <button class="profile-tab" data-tab="posts">Posts</button>
+      <button class="profile-tab" data-tab="trash" id="trashTab" style="display: none;">Trash</button>
     </div>
     
     <!-- Repos -->
@@ -136,6 +137,14 @@
       <h2 class="profile-section__title">Posts</h2>
       <div id="userPosts">
         <p class="text-dim" style="text-align: center; padding: var(--sp-4);">No posts yet.</p>
+      </div>
+    </section>
+
+    <!-- Trash -->
+    <section class="profile-section" id="trashSection" style="display: none;">
+      <h2 class="profile-section__title">Trash</h2>
+      <div id="trashPosts">
+        <p class="text-dim" style="text-align: center; padding: var(--sp-4);">Trash is empty.</p>
       </div>
     </section>
   </main>

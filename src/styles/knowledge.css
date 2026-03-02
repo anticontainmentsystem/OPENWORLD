@@ -1,37 +1,290 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    KNOWLEDGE PORTAL STYLES
-   Frame listing page + shared knowledge components
+   Full portal page + frame listing + shared components
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Layout ── */
-.knowledge-layout {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 72px var(--sp-4) var(--sp-6);
+/* ── Shared Section Layout ── */
+.k-section {
+  padding: var(--sp-6) 0;
 }
 
-.knowledge-header {
-  padding: var(--sp-6) 0 var(--sp-4);
+.k-section__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 var(--sp-4);
+}
+
+.k-section__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: var(--sp-2);
+}
+
+.k-section__subtitle {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  max-width: 560px;
+  line-height: 1.5;
+  margin-bottom: var(--sp-5);
+}
+
+/* ══════════════════════════════════════
+   HERO
+   ══════════════════════════════════════ */
+.k-hero {
+  padding: 100px var(--sp-4) var(--sp-6);
+  text-align: center;
   border-bottom: 1px solid var(--border);
+}
+
+.k-hero__inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.k-hero__badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--copper-400);
+  background: rgba(184, 115, 51, 0.08);
+  border: 1px solid rgba(184, 115, 51, 0.2);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius);
+  margin-bottom: var(--sp-4);
+  letter-spacing: 0.02em;
+}
+
+.k-hero__title {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.15;
   margin-bottom: var(--sp-4);
 }
 
-.knowledge-header__top {
+.k-hero__subtitle {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  max-width: 540px;
+  margin: 0 auto var(--sp-5);
+}
+
+.k-hero__actions {
+  display: flex;
+  gap: var(--sp-3);
+  justify-content: center;
+  margin-bottom: var(--sp-6);
+}
+
+.btn--lg {
+  padding: var(--sp-2) var(--sp-5);
+  font-size: 0.95rem;
+}
+
+.btn--outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: var(--sp-2) var(--sp-5);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.btn--outline:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+
+.k-hero__stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+}
+
+.k-hero__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.k-hero__stat-num {
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+
+.k-hero__stat-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.k-hero__stat-sep {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+/* ══════════════════════════════════════
+   EXPLAINER — What is a Frame?
+   ══════════════════════════════════════ */
+.k-explainer {
+  border-bottom: 1px solid var(--border);
+}
+
+.k-explainer__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-3);
+}
+
+.k-explainer__card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--sp-4) var(--sp-3);
+  transition: border-color 0.15s ease;
+}
+
+.k-explainer__card:hover {
+  border-color: var(--text-muted);
+}
+
+.k-explainer__icon {
+  font-size: 1.5rem;
+  margin-bottom: var(--sp-2);
+}
+
+.k-explainer__card h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: var(--sp-1);
+}
+
+.k-explainer__card p {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+/* ══════════════════════════════════════
+   CATEGORIES
+   ══════════════════════════════════════ */
+.k-categories {
+  border-bottom: 1px solid var(--border);
+}
+
+.k-categories__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--sp-2);
+}
+
+.k-cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-1);
+  padding: var(--sp-4) var(--sp-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+}
+
+.k-cat-card:hover {
+  border-color: var(--accent);
+  background: rgba(184, 115, 51, 0.04);
+}
+
+.k-cat-card__icon {
+  font-size: 1.6rem;
+  margin-bottom: var(--sp-1);
+}
+
+.k-cat-card__name {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.k-cat-card__desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* ══════════════════════════════════════
+   HOW IT WORKS
+   ══════════════════════════════════════ */
+.k-howto {
+  border-bottom: 1px solid var(--border);
+}
+
+.k-howto__steps {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+}
+
+.k-howto__step {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--sp-4) var(--sp-3);
+}
+
+.k-howto__number {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--copper-500);
+  font-weight: 700;
+  margin-bottom: var(--sp-2);
+}
+
+.k-howto__step h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--sp-1);
+}
+
+.k-howto__step p {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+}
+
+.k-howto__connector {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  padding-top: var(--sp-5);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   FRAMES LISTING
+   ══════════════════════════════════════ */
+.k-listing {
+  border-bottom: 1px solid var(--border);
+}
+
+.k-listing__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--sp-3);
-}
-
-.knowledge-header h1 {
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.knowledge-header__tagline {
-  color: var(--text-dim);
-  font-size: 0.9rem;
-  max-width: 500px;
 }
 
 /* ── Toolbar ── */
@@ -109,19 +362,38 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--sp-3);
+  min-height: 120px;
 }
 
+/* ── Empty State (rich) ── */
 .frames-empty {
   grid-column: 1 / -1;
   text-align: center;
   padding: var(--sp-6) var(--sp-4);
-  color: var(--text-dim);
 }
 
 .frames-empty__icon {
   font-size: 2.5rem;
+  margin-bottom: var(--sp-3);
+  opacity: 0.6;
+}
+
+.frames-empty__title {
+  font-size: 1.1rem;
+  font-weight: 600;
   margin-bottom: var(--sp-2);
-  opacity: 0.5;
+}
+
+.frames-empty__desc {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  max-width: 400px;
+  margin: 0 auto var(--sp-4);
+  line-height: 1.5;
+}
+
+.frames-empty__cta {
+  margin-top: var(--sp-3);
 }
 
 /* ── Frame Card ── */
@@ -228,7 +500,37 @@
   opacity: 0.4;
 }
 
-/* ── Create Modal ── */
+/* ══════════════════════════════════════
+   CTA BANNER
+   ══════════════════════════════════════ */
+.k-cta {
+  border-bottom: 1px solid var(--border);
+  background: rgba(184, 115, 51, 0.03);
+}
+
+.k-cta__content {
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--sp-4) 0;
+}
+
+.k-cta__content h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: var(--sp-2);
+}
+
+.k-cta__content p {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-bottom: var(--sp-4);
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════
+   CREATE MODAL
+   ══════════════════════════════════════ */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -385,7 +687,9 @@
   color: var(--accent);
 }
 
-/* ── Philosophy Footer ── */
+/* ══════════════════════════════════════
+   PHILOSOPHY FOOTER
+   ══════════════════════════════════════ */
 .knowledge-philosophy {
   max-width: 1100px;
   margin: 0 auto;
@@ -456,9 +760,40 @@
   border-top: 1px solid var(--border);
 }
 
-/* ── Responsive ── */
+/* ══════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════ */
+@media (max-width: 900px) {
+  .k-explainer__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .k-categories__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
-  .knowledge-header__top {
+  .k-hero__title {
+    font-size: 2rem;
+  }
+
+  .k-hero__actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .k-howto__steps {
+    flex-direction: column;
+  }
+
+  .k-howto__connector {
+    text-align: center;
+    padding-top: 0;
+    transform: rotate(90deg);
+  }
+
+  .k-listing__header {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--sp-2);
@@ -474,6 +809,18 @@
 }
 
 @media (max-width: 480px) {
+  .k-hero__title {
+    font-size: 1.6rem;
+  }
+
+  .k-explainer__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .k-categories__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .category-grid {
     grid-template-columns: repeat(2, 1fr);
   }

@@ -7,7 +7,6 @@
   <meta name="description" content="Community knowledge frames on OpenWorld. Create, explore, and contribute to living workspaces.">
   <link rel="stylesheet" href="/src/styles/core.css">
   <link rel="stylesheet" href="/src/styles/knowledge.css">
-  <link rel="stylesheet" href="/src/styles/user-badge.css">
 </head>
 <body>
 
@@ -26,44 +25,200 @@
     </div>
   </nav>
 
-  <div class="knowledge-layout">
-
-    <!-- Header -->
-    <header class="knowledge-header">
-      <div class="knowledge-header__top">
-        <div>
-          <h1>Knowledge Portal</h1>
-          <p class="knowledge-header__tagline">Living workspaces for every discipline. Create a frame, build knowledge together.</p>
+  <!-- Hero -->
+  <header class="k-hero">
+    <div class="k-hero__inner">
+      <div class="k-hero__badge">📡 Knowledge Portal</div>
+      <h1 class="k-hero__title">Living workspaces<br>for every discipline</h1>
+      <p class="k-hero__subtitle">
+        A frame is not a post. It's a place where process, failure, theory,
+        and intent are archived. Create one, invite others, build knowledge together.
+      </p>
+      <div class="k-hero__actions">
+        <button class="btn btn--primary btn--lg" id="heroCreateBtn">+ Create a Frame</button>
+        <a href="#frames-listing" class="btn btn--outline btn--lg">Browse Frames</a>
+      </div>
+      <div class="k-hero__stats" id="heroStats">
+        <div class="k-hero__stat">
+          <span class="k-hero__stat-num" id="statFrames">—</span>
+          <span class="k-hero__stat-label">Frames</span>
         </div>
+        <div class="k-hero__stat-sep">·</div>
+        <div class="k-hero__stat">
+          <span class="k-hero__stat-num">10</span>
+          <span class="k-hero__stat-label">Categories</span>
+        </div>
+        <div class="k-hero__stat-sep">·</div>
+        <div class="k-hero__stat">
+          <span class="k-hero__stat-num" id="statContributors">—</span>
+          <span class="k-hero__stat-label">Contributors</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- What is a Frame? -->
+  <section class="k-section k-explainer">
+    <div class="k-section__inner">
+      <h2 class="k-section__title">What is a Frame?</h2>
+      <p class="k-section__subtitle">
+        Frames are community knowledge spaces — not threads, not wikis, not tutorials. Something different.
+      </p>
+      <div class="k-explainer__grid">
+        <div class="k-explainer__card">
+          <div class="k-explainer__icon">💬</div>
+          <h3>Discussion Sections</h3>
+          <p>Threaded conversations organized by topic. Pin important threads, lock resolved ones.</p>
+        </div>
+        <div class="k-explainer__card">
+          <div class="k-explainer__icon">📎</div>
+          <h3>Resource Collections</h3>
+          <p>Curated links, tools, repos, and references. The library your discipline deserves.</p>
+        </div>
+        <div class="k-explainer__card">
+          <div class="k-explainer__icon">❓</div>
+          <h3>Living FAQ</h3>
+          <p>Community-maintained answers that evolve as knowledge deepens — never static.</p>
+        </div>
+        <div class="k-explainer__card">
+          <div class="k-explainer__icon">👥</div>
+          <h3>Open Membership</h3>
+          <p>Anyone can join by contributing. No gatekeeping — participate and you're in.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="k-section k-categories">
+    <div class="k-section__inner">
+      <h2 class="k-section__title">Explore by Discipline</h2>
+      <p class="k-section__subtitle">
+        Every category is a world. Pick one, or create a subcategory that doesn't exist yet.
+      </p>
+      <div class="k-categories__grid" id="categoryCards">
+        <button class="k-cat-card" data-category="coding">
+          <span class="k-cat-card__icon">💻</span>
+          <span class="k-cat-card__name">Coding</span>
+          <span class="k-cat-card__desc">Languages, frameworks, patterns, systems</span>
+        </button>
+        <button class="k-cat-card" data-category="art">
+          <span class="k-cat-card__icon">🎨</span>
+          <span class="k-cat-card__name">Art</span>
+          <span class="k-cat-card__desc">Visual art, illustration, digital & traditional</span>
+        </button>
+        <button class="k-cat-card" data-category="music">
+          <span class="k-cat-card__icon">🎵</span>
+          <span class="k-cat-card__name">Music</span>
+          <span class="k-cat-card__desc">Production, theory, instruments, genres</span>
+        </button>
+        <button class="k-cat-card" data-category="writing">
+          <span class="k-cat-card__icon">✍️</span>
+          <span class="k-cat-card__name">Writing</span>
+          <span class="k-cat-card__desc">Fiction, nonfiction, poetry, worldbuilding</span>
+        </button>
+        <button class="k-cat-card" data-category="engineering">
+          <span class="k-cat-card__icon">⚙️</span>
+          <span class="k-cat-card__name">Engineering</span>
+          <span class="k-cat-card__desc">Hardware, electronics, mechanical, systems</span>
+        </button>
+        <button class="k-cat-card" data-category="photography">
+          <span class="k-cat-card__icon">📷</span>
+          <span class="k-cat-card__name">Photography</span>
+          <span class="k-cat-card__desc">Technique, composition, editing, gear</span>
+        </button>
+        <button class="k-cat-card" data-category="design">
+          <span class="k-cat-card__icon">🖌️</span>
+          <span class="k-cat-card__name">Design</span>
+          <span class="k-cat-card__desc">UI/UX, graphic, product, typography</span>
+        </button>
+        <button class="k-cat-card" data-category="science">
+          <span class="k-cat-card__icon">🔬</span>
+          <span class="k-cat-card__name">Science</span>
+          <span class="k-cat-card__desc">Research, experiments, theory, discovery</span>
+        </button>
+        <button class="k-cat-card" data-category="craft">
+          <span class="k-cat-card__icon">🛠️</span>
+          <span class="k-cat-card__name">Craft</span>
+          <span class="k-cat-card__desc">Woodworking, textiles, ceramics, making</span>
+        </button>
+        <button class="k-cat-card" data-category="other">
+          <span class="k-cat-card__icon">📡</span>
+          <span class="k-cat-card__name">Other</span>
+          <span class="k-cat-card__desc">Anything that doesn't fit — and that's okay</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section class="k-section k-howto">
+    <div class="k-section__inner">
+      <h2 class="k-section__title">How Frames Work</h2>
+      <div class="k-howto__steps">
+        <div class="k-howto__step">
+          <div class="k-howto__number">01</div>
+          <h3>Create</h3>
+          <p>Pick a category, name your frame, describe its purpose. You're the creator and moderator.</p>
+        </div>
+        <div class="k-howto__connector">→</div>
+        <div class="k-howto__step">
+          <div class="k-howto__number">02</div>
+          <h3>Build</h3>
+          <p>Add discussion sections, curate resources, maintain a living FAQ. Structure knowledge your way.</p>
+        </div>
+        <div class="k-howto__connector">→</div>
+        <div class="k-howto__step">
+          <div class="k-howto__number">03</div>
+          <h3>Grow</h3>
+          <p>Others join by contributing. Threads grow, resources accumulate, knowledge compounds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Frames Listing -->
+  <section class="k-section k-listing" id="frames-listing">
+    <div class="k-section__inner">
+      <div class="k-listing__header">
+        <h2 class="k-section__title">Browse Frames</h2>
         <button class="btn btn--primary" id="createFrameBtn">+ Create Frame</button>
       </div>
-    </header>
 
-    <!-- Toolbar -->
-    <div class="knowledge-toolbar">
-      <input type="text" class="knowledge-search" id="knowledgeSearch" placeholder="Search frames...">
-      <div class="category-tabs" id="categoryTabs">
-        <button class="category-tab active" data-category="all">All</button>
-        <button class="category-tab" data-category="coding">Coding</button>
-        <button class="category-tab" data-category="art">Art</button>
-        <button class="category-tab" data-category="music">Music</button>
-        <button class="category-tab" data-category="writing">Writing</button>
-        <button class="category-tab" data-category="engineering">Engineering</button>
-        <button class="category-tab" data-category="photography">Photography</button>
-        <button class="category-tab" data-category="design">Design</button>
-        <button class="category-tab" data-category="science">Science</button>
-        <button class="category-tab" data-category="craft">Craft</button>
-        <button class="category-tab" data-category="other">Other</button>
+      <div class="knowledge-toolbar">
+        <input type="text" class="knowledge-search" id="knowledgeSearch" placeholder="Search frames by title, tag, or description...">
+        <div class="category-tabs" id="categoryTabs">
+          <button class="category-tab active" data-category="all">All</button>
+          <button class="category-tab" data-category="coding">Coding</button>
+          <button class="category-tab" data-category="art">Art</button>
+          <button class="category-tab" data-category="music">Music</button>
+          <button class="category-tab" data-category="writing">Writing</button>
+          <button class="category-tab" data-category="engineering">Engineering</button>
+          <button class="category-tab" data-category="photography">Photography</button>
+          <button class="category-tab" data-category="design">Design</button>
+          <button class="category-tab" data-category="science">Science</button>
+          <button class="category-tab" data-category="craft">Craft</button>
+          <button class="category-tab" data-category="other">Other</button>
+        </div>
+        <span class="text-dim" style="font-size: 0.75rem; white-space: nowrap;" id="frameCount"></span>
       </div>
-      <span class="text-dim" style="font-size: 0.75rem; white-space: nowrap;" id="frameCount"></span>
-    </div>
 
-    <!-- Frames Grid -->
-    <div class="frames-grid" id="framesGrid">
-      <p class="text-dim" style="padding: var(--sp-4);">Loading frames...</p>
+      <div class="frames-grid" id="framesGrid">
+        <p class="text-dim" style="padding: var(--sp-4);">Loading frames...</p>
+      </div>
     </div>
+  </section>
 
-  </div>
+  <!-- CTA Banner -->
+  <section class="k-section k-cta">
+    <div class="k-section__inner">
+      <div class="k-cta__content">
+        <h2>Ready to build something?</h2>
+        <p>Every frame starts with one person and one idea. The rest grows from contribution.</p>
+        <button class="btn btn--primary btn--lg" id="ctaCreateBtn">+ Create Your First Frame</button>
+      </div>
+    </div>
+  </section>
 
   <!-- Philosophy -->
   <footer class="knowledge-philosophy">
@@ -88,14 +243,14 @@
           <span class="knowledge-philosophy__marker">03</span>
           <div>
             <strong>AI as Archivist</strong>
-            <p>Helps organize and retrieve knowledge. Acts as archivist—not authority.</p>
+            <p>Helps organize and retrieve knowledge. Acts as archivist — not authority.</p>
           </div>
         </div>
         <div class="knowledge-philosophy__principle">
           <span class="knowledge-philosophy__marker">04</span>
           <div>
             <strong>Living Spaces</strong>
-            <p>Not tutorials—transmissions. Not forums—workspaces. Knowledge is honest memory.</p>
+            <p>Not tutorials — transmissions. Not forums — workspaces. Knowledge is honest memory.</p>
           </div>
         </div>
       </div>

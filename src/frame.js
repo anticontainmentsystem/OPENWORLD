@@ -5,6 +5,7 @@
 import { auth } from './services/auth.js';
 import { framesAPI, frameMembersAPI, frameSectionsAPI } from './services/frames-data.js';
 import { FrameSection } from './components/FrameSection.js';
+import { renderUserBadge } from './components/UserBadge.js';
 
 // DOM
 const userBadge = document.getElementById('userBadge');
@@ -32,20 +33,7 @@ function init() {
 }
 
 function initAuth() {
-  auth.subscribe(user => {
-    if (user) {
-      userBadge.innerHTML = `
-        <div class="user-badge__trigger">
-          <img src="${user.avatar}" class="user-badge__avatar" style="width:28px;height:28px;border-radius:50%;">
-          <span style="font-size:0.85rem;">${user.username}</span>
-        </div>
-      `;
-    } else {
-      userBadge.innerHTML = `<button id="loginBtn" class="btn btn--primary btn--sm">Sign In</button>`;
-      document.getElementById('loginBtn')?.addEventListener('click', () => auth.login());
-    }
-  });
-  auth.getUser();
+  renderUserBadge(userBadge);
 }
 
 async function loadFrame() {

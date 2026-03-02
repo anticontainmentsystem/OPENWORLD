@@ -4,68 +4,265 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Knowledge Portal — OpenWorld</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/assets/auth-qTptiIUO.js"></script>
-  <script type="module" crossorigin src="/assets/NotificationDropdown-BsIzgKD3.js"></script>
-  <script type="module" crossorigin src="/assets/main-BmGY6gCI.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/core-D-M3okia.css">
-  <link rel="stylesheet" crossorigin href="/assets/pillar-SDg9WLoT.css">
+  <meta name="description" content="Community knowledge frames on OpenWorld. Create, explore, and contribute to living workspaces.">
+  <script type="module" crossorigin src="/assets/knowledge-BZ56PHME.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/auth-BoBc4x_h.js">
+  <link rel="modulepreload" crossorigin href="/assets/NotificationDropdown-Cul7GRCK.js">
+  <link rel="modulepreload" crossorigin href="/assets/UserBadge-BLCkjwZb.js">
+  <link rel="stylesheet" crossorigin href="/assets/UserBadge-enrSbsy7.css">
+  <link rel="stylesheet" crossorigin href="/assets/core-51M-ox8s.css">
 </head>
-<body class="pillar--knowledge">
-  <nav class="ow-nav">
-    <div class="ow-container ow-nav__inner">
-      <a href="/" class="ow-nav__logo">
-        <span class="ow-nav__logo-mark">◈</span>
-        <span class="ow-nav__logo-text">OpenWorld</span>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="container nav__inner">
+      <a href="/" class="nav__logo">
+        <span class="nav__mark">◈</span> OpenWorld
       </a>
-      <ul class="ow-nav__links">
-        <li><a href="/">← Portal</a></li>
+      <ul class="nav__links">
+        <li><a href="/">Portal</a></li>
+        <li><a href="/pillars/community/">Community</a></li>
+        <li><a href="/pillars/knowledge/" style="color: var(--text);">Knowledge</a></li>
       </ul>
+      <div class="user-badge" id="userBadge"></div>
     </div>
   </nav>
 
-  <header class="pillar-hero">
-    <div class="ow-container">
-      <div class="pillar-hero__icon">📡</div>
-      <h1 class="pillar-hero__title">Knowledge Portal</h1>
-      <p class="pillar-hero__tagline">The memory of the organism</p>
+  <!-- Hero -->
+  <header class="k-hero">
+    <div class="k-hero__inner">
+      <div class="k-hero__badge">📡 Knowledge Portal</div>
+      <h1 class="k-hero__title">Living workspaces<br>for every discipline</h1>
+      <p class="k-hero__subtitle">
+        A frame is not a post. It's a place where process, failure, theory,
+        and intent are archived. Create one, invite others, build knowledge together.
+      </p>
+      <div class="k-hero__actions">
+        <button class="btn btn--primary btn--lg" id="heroCreateBtn">+ Create a Frame</button>
+        <a href="#frames-listing" class="btn btn--outline btn--lg">Browse Frames</a>
+      </div>
+      <div class="k-hero__stats" id="heroStats">
+        <div class="k-hero__stat">
+          <span class="k-hero__stat-num" id="statFrames">—</span>
+          <span class="k-hero__stat-label">Frames</span>
+        </div>
+        <div class="k-hero__stat-sep">·</div>
+        <div class="k-hero__stat">
+          <span class="k-hero__stat-num">10</span>
+          <span class="k-hero__stat-label">Categories</span>
+        </div>
+        <div class="k-hero__stat-sep">·</div>
+        <div class="k-hero__stat">
+          <span class="k-hero__stat-num" id="statContributors">—</span>
+          <span class="k-hero__stat-label">Contributors</span>
+        </div>
+      </div>
     </div>
   </header>
 
-  <main class="ow-section">
-    <div class="ow-container">
-      <section class="pillar-intro">
-        <h2>Shared Memory, Shared Learning</h2>
-        <p>Not tutorials—transmissions. A place where process, failure, theory, and intent are archived. Knowledge is not polished marketing. It's honest memory.</p>
-        
-        <div class="pillar-principles">
-          <div class="pillar-principle">
-            <h3>Transparent Thinking</h3>
+  <!-- What is a Frame? -->
+  <section class="k-section k-explainer">
+    <div class="k-section__inner">
+      <h2 class="k-section__title">What is a Frame?</h2>
+      <p class="k-section__subtitle">
+        Frames are community knowledge spaces — not threads, not wikis, not tutorials. Something different.
+      </p>
+      <div class="k-explainer__grid">
+        <div class="k-explainer__card">
+          <div class="k-explainer__icon">💬</div>
+          <h3>Discussion Sections</h3>
+          <p>Threaded conversations organized by topic. Pin important threads, lock resolved ones.</p>
+        </div>
+        <div class="k-explainer__card">
+          <div class="k-explainer__icon">📎</div>
+          <h3>Resource Collections</h3>
+          <p>Curated links, tools, repos, and references. The library your discipline deserves.</p>
+        </div>
+        <div class="k-explainer__card">
+          <div class="k-explainer__icon">❓</div>
+          <h3>Living FAQ</h3>
+          <p>Community-maintained answers that evolve as knowledge deepens — never static.</p>
+        </div>
+        <div class="k-explainer__card">
+          <div class="k-explainer__icon">👥</div>
+          <h3>Open Membership</h3>
+          <p>Anyone can join by contributing. No gatekeeping — participate and you're in.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories -->
+  <section class="k-section k-categories">
+    <div class="k-section__inner">
+      <h2 class="k-section__title">Explore by Discipline</h2>
+      <p class="k-section__subtitle">
+        Every category is a world. Pick one, or create a subcategory that doesn't exist yet.
+      </p>
+      <div class="k-categories__grid" id="categoryCards">
+        <button class="k-cat-card" data-category="coding">
+          <span class="k-cat-card__icon">💻</span>
+          <span class="k-cat-card__name">Coding</span>
+          <span class="k-cat-card__desc">Languages, frameworks, patterns, systems</span>
+        </button>
+        <button class="k-cat-card" data-category="art">
+          <span class="k-cat-card__icon">🎨</span>
+          <span class="k-cat-card__name">Art</span>
+          <span class="k-cat-card__desc">Visual art, illustration, digital & traditional</span>
+        </button>
+        <button class="k-cat-card" data-category="music">
+          <span class="k-cat-card__icon">🎵</span>
+          <span class="k-cat-card__name">Music</span>
+          <span class="k-cat-card__desc">Production, theory, instruments, genres</span>
+        </button>
+        <button class="k-cat-card" data-category="writing">
+          <span class="k-cat-card__icon">✍️</span>
+          <span class="k-cat-card__name">Writing</span>
+          <span class="k-cat-card__desc">Fiction, nonfiction, poetry, worldbuilding</span>
+        </button>
+        <button class="k-cat-card" data-category="engineering">
+          <span class="k-cat-card__icon">⚙️</span>
+          <span class="k-cat-card__name">Engineering</span>
+          <span class="k-cat-card__desc">Hardware, electronics, mechanical, systems</span>
+        </button>
+        <button class="k-cat-card" data-category="photography">
+          <span class="k-cat-card__icon">📷</span>
+          <span class="k-cat-card__name">Photography</span>
+          <span class="k-cat-card__desc">Technique, composition, editing, gear</span>
+        </button>
+        <button class="k-cat-card" data-category="design">
+          <span class="k-cat-card__icon">🖌️</span>
+          <span class="k-cat-card__name">Design</span>
+          <span class="k-cat-card__desc">UI/UX, graphic, product, typography</span>
+        </button>
+        <button class="k-cat-card" data-category="science">
+          <span class="k-cat-card__icon">🔬</span>
+          <span class="k-cat-card__name">Science</span>
+          <span class="k-cat-card__desc">Research, experiments, theory, discovery</span>
+        </button>
+        <button class="k-cat-card" data-category="craft">
+          <span class="k-cat-card__icon">🛠️</span>
+          <span class="k-cat-card__name">Craft</span>
+          <span class="k-cat-card__desc">Woodworking, textiles, ceramics, making</span>
+        </button>
+        <button class="k-cat-card" data-category="other">
+          <span class="k-cat-card__icon">📡</span>
+          <span class="k-cat-card__name">Other</span>
+          <span class="k-cat-card__desc">Anything that doesn't fit — and that's okay</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section class="k-section k-howto">
+    <div class="k-section__inner">
+      <h2 class="k-section__title">How Frames Work</h2>
+      <div class="k-howto__steps">
+        <div class="k-howto__step">
+          <div class="k-howto__number">01</div>
+          <h3>Create</h3>
+          <p>Pick a category, name your frame, describe its purpose. You're the creator and moderator.</p>
+        </div>
+        <div class="k-howto__connector">→</div>
+        <div class="k-howto__step">
+          <div class="k-howto__number">02</div>
+          <h3>Build</h3>
+          <p>Add discussion sections, curate resources, maintain a living FAQ. Structure knowledge your way.</p>
+        </div>
+        <div class="k-howto__connector">→</div>
+        <div class="k-howto__step">
+          <div class="k-howto__number">03</div>
+          <h3>Grow</h3>
+          <p>Others join by contributing. Threads grow, resources accumulate, knowledge compounds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Frames Listing -->
+  <section class="k-section k-listing" id="frames-listing">
+    <div class="k-section__inner">
+      <div class="k-listing__header">
+        <h2 class="k-section__title">Browse Frames</h2>
+        <button class="btn btn--primary" id="createFrameBtn">+ Create Frame</button>
+      </div>
+
+      <div class="knowledge-toolbar">
+        <input type="text" class="knowledge-search" id="knowledgeSearch" placeholder="Search frames by title, tag, or description...">
+        <div class="category-tabs" id="categoryTabs">
+          <button class="category-tab active" data-category="all">All</button>
+          <button class="category-tab" data-category="coding">Coding</button>
+          <button class="category-tab" data-category="art">Art</button>
+          <button class="category-tab" data-category="music">Music</button>
+          <button class="category-tab" data-category="writing">Writing</button>
+          <button class="category-tab" data-category="engineering">Engineering</button>
+          <button class="category-tab" data-category="photography">Photography</button>
+          <button class="category-tab" data-category="design">Design</button>
+          <button class="category-tab" data-category="science">Science</button>
+          <button class="category-tab" data-category="craft">Craft</button>
+          <button class="category-tab" data-category="other">Other</button>
+        </div>
+        <span class="text-dim" style="font-size: 0.75rem; white-space: nowrap;" id="frameCount"></span>
+      </div>
+
+      <div class="frames-grid" id="framesGrid">
+        <p class="text-dim" style="padding: var(--sp-4);">Loading frames...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="k-section k-cta">
+    <div class="k-section__inner">
+      <div class="k-cta__content">
+        <h2>Ready to build something?</h2>
+        <p>Every frame starts with one person and one idea. The rest grows from contribution.</p>
+        <button class="btn btn--primary btn--lg" id="ctaCreateBtn">+ Create Your First Frame</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Philosophy -->
+  <footer class="knowledge-philosophy">
+    <div class="knowledge-philosophy__inner">
+      <h2 class="knowledge-philosophy__title">The Memory of the Organism</h2>
+      <div class="knowledge-philosophy__principles">
+        <div class="knowledge-philosophy__principle">
+          <span class="knowledge-philosophy__marker">01</span>
+          <div>
+            <strong>Transparent Thinking</strong>
             <p>Behind-the-scenes exposed. Failures recorded alongside successes.</p>
           </div>
-          <div class="pillar-principle">
-            <h3>AI as Archivist</h3>
-            <p>Helps organize and retrieve knowledge. Acts as archivist—not authority.</p>
-          </div>
-          <div class="pillar-principle">
-            <h3>Why Over How</h3>
-            <p>"Why this exists" over "how to copy it". Intent matters more than instructions.</p>
+        </div>
+        <div class="knowledge-philosophy__principle">
+          <span class="knowledge-philosophy__marker">02</span>
+          <div>
+            <strong>Why Over How</strong>
+            <p>"Why this exists" over "how to copy it." Intent matters more than instructions.</p>
           </div>
         </div>
-      </section>
-
-      <section class="pillar-projects">
-        <h2>Archives</h2>
-        <p class="ow-text-muted">Coming soon — case studies, dev logs, audio/visual breakdowns.</p>
-      </section>
-    </div>
-  </main>
-
-  <footer class="ow-footer">
-    <div class="ow-container">
-      <p class="ow-footer__meta">◈ OpenWorld — Knowledge Portal</p>
+        <div class="knowledge-philosophy__principle">
+          <span class="knowledge-philosophy__marker">03</span>
+          <div>
+            <strong>AI as Archivist</strong>
+            <p>Helps organize and retrieve knowledge. Acts as archivist — not authority.</p>
+          </div>
+        </div>
+        <div class="knowledge-philosophy__principle">
+          <span class="knowledge-philosophy__marker">04</span>
+          <div>
+            <strong>Living Spaces</strong>
+            <p>Not tutorials — transmissions. Not forums — workspaces. Knowledge is honest memory.</p>
+          </div>
+        </div>
+      </div>
+      <blockquote class="knowledge-philosophy__quote">
+        A frame is not a post. It's a place where<br>
+        process, failure, theory, and intent are archived.
+      </blockquote>
+      <p class="knowledge-philosophy__meta">◈ OpenWorld — Knowledge Portal</p>
     </div>
   </footer>
 

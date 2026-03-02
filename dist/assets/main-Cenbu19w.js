@@ -1,4 +1,4 @@
-import{a as i}from"./auth-qTptiIUO.js";import{N as d}from"./NotificationDropdown-BsIzgKD3.js";const r=document.createElement("link");r.rel="stylesheet";r.href="/src/styles/notification.css";document.head.appendChild(r);const t=document.getElementById("userBadge");function l(){t&&(i.subscribe(a),a(i.getUser()))}function a(e){if(t)if(e){t.innerHTML=`
+import{a as i}from"./auth-BoBc4x_h.js";import{N as d}from"./NotificationDropdown-Cul7GRCK.js";import{i as l}from"./CursorTrail-19OP0d5w.js";l();const r=document.createElement("link");r.rel="stylesheet";r.href="/src/styles/notification.css";document.head.appendChild(r);const t=document.getElementById("userBadge");function c(){t&&(i.subscribe(a),a(i.getUser()))}function a(e){if(t)if(e){t.innerHTML=`
       <button class="user-badge__trigger" id="userBadgeTrigger">
         <img src="${e.avatar}" alt="${e.name}" class="user-badge__avatar">
         <span class="user-badge__name">${e.username}</span>
@@ -26,4 +26,4 @@ import{a as i}from"./auth-qTptiIUO.js";import{N as d}from"./NotificationDropdown
         </svg>
         Sign In
       </button>
-    `,document.getElementById("navLoginBtn").addEventListener("click",()=>i.login())}document.addEventListener("DOMContentLoaded",l);document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(n){n.preventDefault();const o=document.querySelector(this.getAttribute("href"));o&&o.scrollIntoView({behavior:"smooth",block:"start"})})});console.log("%c◈ OpenWorld","color: #b87333; font-size: 20px; font-weight: bold;");
+    `,document.getElementById("navLoginBtn").addEventListener("click",()=>i.login())}document.addEventListener("DOMContentLoaded",c);document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(n){n.preventDefault();const o=document.querySelector(this.getAttribute("href"));o&&o.scrollIntoView({behavior:"smooth",block:"start"})})});console.log("%c◈ OpenWorld","color: #b87333; font-size: 20px; font-weight: bold;");

@@ -83,7 +83,7 @@ The feed shows **one work at a time**, snapping between posts:
 - The posts **directly above and below** are visible as half-seen **snapshots** in a fog-of-war look, so there's always a sense of more.
 - Posts **two steps away** have their snapshot data prefetched. Nothing further is loaded.
 - One gesture = one post (wheel, trackpad, swipe, arrow keys, J/K). No flinging past work.
-- **Power-up shift**: every advance charges before it releases. Scrolling pulls the post slightly toward the next one (rubber-band) while the fog glows and builds; when ready it releases and snaps forward. A short minimum charge always gives moves a deliberate, weighty feel; the charge stretches longer only when the next post is still loading. Letting go early eases back, but loading continues.
+- **Power-up shift**: appears only when the next post is still loading. Normally the feed snaps instantly. If it has to wait, scrolling pulls the post slightly toward the next one (rubber-band) while the fog glows and builds; when ready it releases and snaps forward. Letting go early eases back, but loading continues.
 - If loading takes more than ~4 seconds, the charge stops and shows "still loading…" with a retry, and the user can advance to the snapshot.
 - The live module fades in over its snapshot.
 - Tall posts scroll internally before the feed advances.

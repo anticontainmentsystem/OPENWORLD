@@ -90,7 +90,9 @@ Window of five slots around the focused index `i`:
 | others | not loaded |
 
 - Input is normalized: each wheel/trackpad gesture, swipe, arrow or J/K key advances exactly one post.
-- Advancing is blocked only while the next snapshot isn't ready; the pulse on the fog indicates waiting.
+- **Power-up shift**: a scroll intent starts a charge. Charge time = max(minimum charge ≈ 150–250 ms, time until the next snapshot is ready). During the charge: rubber-band translate toward the target, fog glow intensifies, progressive haptics where supported (`navigator.vibrate`). On completion: release with slight overshoot and snap. Releasing input early cancels the animation (eases back) but not the prefetch.
+- Charge timeout ≈ 4 s → "still loading…" + retry; user may advance onto the snapshot.
+- `prefers-reduced-motion`: no translate/glow; a plain progress indicator instead.
 - On focus: mount live module over the snapshot, fade in. On blur: `saveState`, unmount, return to snapshot.
 - Tall posts scroll internally; the feed advances at the post's edge.
 - Grid view and `prefers-reduced-motion` use snapshots only.

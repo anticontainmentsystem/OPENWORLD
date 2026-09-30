@@ -12,18 +12,24 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"deploy": "npm run build && wrangler deploy",
 		"db:migrate:local": "wrangler d1 migrations apply openworld --local",
-		"db:migrate": "wrangler d1 migrations apply openworld --remote"
+		"db:migrate": "wrangler d1 migrations apply openworld --remote",
+		"test": "vitest run"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20260930.1",
 		"@sveltejs/adapter-cloudflare": "^7.2.9",
 		"@sveltejs/kit": "^2.63.0",
 		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@types/node": "^26.6.3",
 		"svelte": "^5.56.1",
 		"svelte-check": "^4.6.0",
 		"typescript": "^6.0.3",
 		"vite": "^8.0.16",
+		"vitest": "^5.0.2",
 		"wrangler": "^4.144.0"
 	},
-	"description": "OpenWorld \u2014 a social network for showing creative work of every kind, from wherever it lives"
+	"description": "OpenWorld — a social network for showing creative work of every kind, from wherever it lives",
+	"dependencies": {
+		"yaml": "^2.9.1"
+	}
 }

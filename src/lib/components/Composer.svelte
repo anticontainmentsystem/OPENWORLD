@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Block from '$lib/modules/Block.svelte';
 	import { providerNames } from '$lib/modules/providers';
 	import { MAX_BLOCKS, categories, moduleMap, modules, validateBlock } from '$lib/modules/registry';
+
+	let { prefillRepo = null }: { prefillRepo?: string | null } = $props();
 
 	interface Draft {
 		key: number;
@@ -44,6 +47,10 @@
 		add(block.type, data, { ...(preview ? { preview } : {}), ...(info ? { info } : {}) });
 		paste = '';
 	}
+
+	onMount(() => {
+		if (prefillRepo) add('github-repo', { repo: prefillRepo });
+	});
 
 	const move = (i: number, d: number) => {
 		const j = i + d;

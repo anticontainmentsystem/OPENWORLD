@@ -1,8 +1,7 @@
 import { error, json } from '@sveltejs/kit';
 import { MAX_BLOCKS, buildSnapshot, stripServerKeys, validateBlock } from '$lib/modules/registry';
-import { decrypt } from '$lib/server/auth';
 import { enrichBlocks } from '$lib/server/enrich';
-import { env, requireUser } from '$lib/server/env';
+import { env, githubToken, requireUser } from '$lib/server/env';
 import { getPost, newPostId } from '$lib/server/posts';
 import type { Block } from '$lib/types';
 
@@ -25,12 +24,7 @@ export async function POST(event) {
 	const last = await e.DB.prepare('SELECT MAX(created_at) AS t FROM posts WHERE author_id = ?').bind(user.id).first<{ t: number | null }>();
 	if (last?.t && Date.now() - last.t < COOLDOWN_MS) error(429, 'Slow down a little — try again in a few seconds');
 
-	const session = event.locals.sessionId
-		? await e.DB.prepare('SELECT token_enc FROM sessions WHERE id = ?').bind(event.locals.sessionId).first<{ token_enc: string | null }>()
-		: null;
-	const token = session?.token_enc && e.SESSION_SECRET ? await decrypt(session.token_enc, e.SESSION_SECRET) : null;
-
-	const enriched = await enrichBlocks(e.DB, blocks, token);
+	const enriched = await enrichBlocks(e.DB, blocks, await githubToken(event));
 	const id = newPostId();
 	await e.DB.prepare('INSERT INTO posts (id, author_id, blocks_json, snapshot_json, created_at) VALUES (?, ?, ?, ?, ?)')
 		.bind(id, user.id, JSON.stringify(enriched), JSON.stringify(buildSnapshot(enriched)), Date.now())

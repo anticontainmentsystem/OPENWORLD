@@ -1,0 +1,24 @@
+title: The Title of the Work or Series
+medium: visual-art
+summary: Medium, size, year, and what it's about.
+cover: works/main.jpg
+credits:
+  - Artist — Your Name
+showcase:
+  - image: works/main.jpg
+  - gallery: [works/detail-1.jpg, works/detail-2.jpg, works/detail-3.jpg]
+  - type: before-after
+    before: process/underpainting.jpg
+    after: works/main.jpg
+    caption: Underpainting to finished
+  - materials:
+      - Oil on linen
+      - 120 × 90 cm
+  - type: palette
+    colors: ["#b87333", "#4a6741", "#e8e6e0"]
+    name: Main palette
+  - timeline:
+      - Spring — Sketches
+      - Summer — Painting
+      - Autumn — Exhibited
+  - map: Your Gallery, City

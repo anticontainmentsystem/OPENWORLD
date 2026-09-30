@@ -1,0 +1,28 @@
+title: The Title of Your Play
+medium: theater
+summary: One or two sentences about the production.
+cover: media/poster.jpg
+credits:
+  - Writer — Your Name
+  - Director — Name
+  - Set design — Name
+  - Lighting — Name
+links:
+  - https://example.com/tickets
+showcase:
+  - embed: https://youtu.be/REPLACE_ME1   # your YouTube link
+  - text: "What the piece is about, where it came from, who made it."
+  - gallery: [media/production-1.jpg, media/production-2.jpg, media/production-3.jpg]
+  - document: script/script.pdf
+  - type: before-after
+    before: set-design/sketch.jpg
+    after: media/production-1.jpg
+    caption: Set, sketch to stage
+  - timeline:
+      - January — First table read
+      - March — Rehearsals begin
+      - May — Opening night
+  - type: event
+    title: Opening night
+    date: 2027-05-01
+    venue: Your Theater, City

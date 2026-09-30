@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Composer from '$lib/components/Composer.svelte';
+	let { data } = $props();
 </script>
 
 <svelte:head><title>New post · OpenWorld</title></svelte:head>
@@ -7,7 +8,7 @@
 <div class="page">
 	<h1>New post</h1>
 	<p class="muted intro">Your work stays where it lives. Build a post from modules that show it.</p>
-	<Composer />
+	<Composer prefillRepo={data.prefillRepo} />
 </div>
 
 <style>

@@ -20,6 +20,8 @@ npm run db:migrate:local            # creates the local database in .wrangler/
 npm run dev                         # http://localhost:5173
 ```
 
+Run the tests with `npm test`.
+
 Sign in without GitHub while developing: open `http://localhost:5173/auth/dev?as=yourname`.
 (Only works under `npm run dev` with `DEV_LOGIN=1`; it is disabled in production builds.)
 
@@ -48,6 +50,16 @@ node scripts/import-legacy.mjs ../openworld-data > legacy.sql
 npx wrangler d1 execute openworld --remote --file legacy.sql
 ```
 
+## Creative repos
+
+Anyone can add their own public GitHub repos from their profile. OpenWorld builds a page at
+`/r/owner/repo` from the repo's `openworld.yml`, README, releases, contributors and commits.
+Guide: [docs/MANIFEST.md](docs/MANIFEST.md). Starter repos for theater, dance, visual art and
+music: [templates/](templates/).
+
+Optional: `npx wrangler secret put GITHUB_TOKEN` (a GitHub token with no scopes) raises the
+GitHub API rate limit for repo pages viewed by signed-out visitors.
+
 ## Adding a module
 
 1. Add an entry to `src/lib/modules/registry.ts` (id, name, icon, fields, snapshot).
@@ -62,8 +74,10 @@ from a matched pattern, never taken from user input.
 ```
 src/lib/modules/      registry, embed providers, block renderers
 src/lib/components/   FocusFeed (snap feed + power-up), GridView, Composer, PostView…
-src/lib/server/       auth/sessions, link + GitHub enrichment, feed queries
+src/lib/server/       auth/sessions, link + GitHub enrichment, feed queries, repo sync
+src/lib/manifest.ts   openworld.yml parser
 src/routes/           pages and /api endpoints
 migrations/           D1 schema
 scripts/              one-off tools (legacy import)
+templates/            starter creative repos (openworld.yml + layout)
 ```

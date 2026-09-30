@@ -80,6 +80,8 @@ export interface GithubProfile {
 
 /** Insert or refresh a user from their GitHub profile; returns the local user id. */
 export async function upsertGithubUser(db: D1Database, gh: GithubProfile): Promise<number> {
+	// GitHub usernames can be renamed and reused: move a stale holder of this name out of the way.
+	await db.prepare(`UPDATE users SET username = username || '-' || id WHERE username = ? AND github_id IS NOT ?`).bind(gh.login, String(gh.id)).run();
 	const row = await db
 		.prepare(
 			`INSERT INTO users (github_id, username, name, avatar, bio, website, created_at)

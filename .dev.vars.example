@@ -5,3 +5,5 @@ GITHUB_CLIENT_SECRET=
 SESSION_SECRET=change-me-to-a-long-random-string
 # Enables /auth/dev (sign in as a fake user without GitHub). Never set in production.
 DEV_LOGIN=1
+# Optional: a GitHub token (no scopes needed) to raise API rate limits for repo pages.
+GITHUB_TOKEN=

@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { env } from '$lib/server/env';
 import { getFeed } from '$lib/server/posts';
+import { listRepos } from '$lib/server/repos';
 
 export async function load(event) {
 	const { DB } = env(event);
@@ -20,5 +21,13 @@ export async function load(event) {
 		}>();
 	if (!profile) error(404, 'No one here by that name');
 	const page = await getFeed(DB, viewer, { kind: 'author', authorId: profile.id });
-	return { profile: { ...profile, followed: !!profile.followed, isGithub: !!profile.github_id && !profile.github_id.startsWith('-') }, page };
+	const repos = (await listRepos(DB, profile.id)).map((r) => ({
+		fullName: r.data.fullName,
+		title: r.data.manifest.title ?? r.data.fullName.split('/')[1],
+		medium: r.data.manifest.medium,
+		summary: r.data.manifest.summary ?? r.data.description,
+		cover: r.data.manifest.cover ?? `https://opengraph.githubassets.com/1/${r.data.fullName}`
+	}));
+	return {
+		repos, profile: { ...profile, followed: !!profile.followed, isGithub: !!profile.github_id && !profile.github_id.startsWith('-') }, page };
 }

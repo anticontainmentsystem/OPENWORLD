@@ -1,0 +1,20 @@
+title: Album or Track Title
+medium: music
+summary: Genre, year, and a line about the record.
+cover: artwork/cover.jpg
+credits:
+  - Written and performed — Your Name
+  - Mixed by — Name
+  - Artwork — Name
+showcase:
+  - embed: https://open.spotify.com/album/ALBUM_ID
+  - embed: https://soundcloud.com/you/track
+  - tracklist:
+      - First Track — 3:41
+      - Second Track — 4:02
+  - image: artwork/cover.jpg
+  - document: scores/lead-sheet.pdf
+  - materials:
+      - Guitar
+      - Modular synth
+      - Field recordings

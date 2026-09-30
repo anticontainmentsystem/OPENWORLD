@@ -27,8 +27,8 @@ One framework for the shell. Framework freedom lives in modules.
 ```
 users            id, github_id, username, name, avatar, bio, links, created_at
 sessions         id, user_id, token_enc, expires_at
-repos            id, owner_id, source (github|external), github_full_name, url,
-                 title, medium, manifest_json, synced_at
+repos            id, owner_id, full_name, data_json (GitHub data + parsed openworld.yml),
+                 synced_at, created_at
 posts            id, author_id, repo_id?, space_id?, blocks_json, snapshot_json,
                  created_at, edited_at, deleted_at
 follows          follower_id, followee_id, created_at
@@ -103,6 +103,17 @@ Window of five slots around the focused index `i`:
 - Write (with user grant): create repo from template, commit files/manifest from the OpenWorld editor, create releases.
 - Rate limits: responses cached; webhooks (GitHub App) keep repo data fresh instead of polling.
 - Media served from GitHub is proxied/cached via Cloudflare, never hot-linked at scale.
+
+### Creative repos (implemented)
+
+- Owners add their own public repos (owner login must match). Org repos: later, via membership check.
+- Sync reads repo info, `openworld.yml` (see [MANIFEST.md](./MANIFEST.md)), README (GitHub-rendered HTML),
+  releases, contributors, recent commits. Stored in `repos.data_json`; re-read in the background
+  when older than 6 h, or on the owner's Refresh.
+- Manifest paths resolve to `raw.githubusercontent.com` on the default branch; traversal and non-http
+  schemes are rejected; every showcase entry goes through the same block validation as posts.
+- README HTML renders in an `<iframe sandbox>` without scripts or same-origin access.
+- Token order for GitHub calls: signed-in user's token → optional `GITHUB_TOKEN` → anonymous.
 
 ## Migration from the current site
 

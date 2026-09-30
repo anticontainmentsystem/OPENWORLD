@@ -1,0 +1,21 @@
+title: The Title of Your Piece
+medium: dance
+summary: One or two sentences about the piece.
+cover: media/cover.jpg
+credits:
+  - Choreography — Your Name
+  - Dancers — Names
+  - Music — Name
+showcase:
+  - embed: https://vimeo.com/000000000   # your Vimeo link
+  - text: "What the movement explores."
+  - gallery: [media/rehearsal-1.jpg, media/rehearsal-2.jpg]
+  - document: notation/score.pdf
+  - tracklist:
+      - Opening — 4:10
+      - The fall — 6:30
+      - Catching — 5:45
+  - timeline:
+      - February — Improvisation sessions
+      - April — Structure set
+      - June — Premiere

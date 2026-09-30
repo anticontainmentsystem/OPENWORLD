@@ -1,0 +1,7 @@
+# Copy to .dev.vars for local development.
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+# Any long random string; used to encrypt stored GitHub tokens.
+SESSION_SECRET=change-me-to-a-long-random-string
+# Enables /auth/dev (sign in as a fake user without GitHub). Never set in production.
+DEV_LOGIN=1
